@@ -305,6 +305,41 @@
       min-height: 20px;
     }
 
+    /* Diagnostic */
+    .diag-section {
+      border-top: 1px solid #2a2a3a;
+      padding-top: 16px;
+      margin-top: 4px;
+    }
+    .diag-btn {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #2a2a3a;
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      color: var(--text-muted);
+      font-family: var(--font);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .diag-btn:hover { color: var(--text); border-color: var(--accent); }
+    .diag-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .diag-output {
+      margin-top: 12px;
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      line-height: 1.6;
+      max-height: 300px;
+      overflow-y: auto;
+      display: none;
+      white-space: pre-wrap;
+    }
+    .diag-output.visible { display: block; }
+
     /* Desktop */
     @media (min-width: 540px) {
       body { padding: 32px; }
@@ -357,6 +392,11 @@
           <span class="result-label">Last result</span>
           <span class="result-value" id="num-result">—</span>
           <span class="result-range" id="num-range"></span>
+        </div>
+
+        <div class="diag-section">
+          <button class="diag-btn" id="verify-btn">🔬 Verify Fairness (browser CSPRNG)</button>
+          <div class="diag-output" id="diag-output"></div>
         </div>
       </div>
 
@@ -512,6 +552,88 @@
           generateNumber();
         }
       });
+    });
+
+    // ── Fairness diagnostic ─────────────────────────────────
+    const verifyBtn = document.getElementById("verify-btn");
+    const diagOutput = document.getElementById("diag-output");
+
+    function analyzeDistribution(values, min, max) {
+      const counts = new Map();
+      for (const v of values) {
+        counts.set(v, (counts.get(v) || 0) + 1);
+      }
+      return counts;
+    }
+
+    function analyzeStreaks(values) {
+      const streaks = {};
+      let i = 0;
+      while (i < values.length) {
+        let len = 1;
+        while (i + len < values.length && values[i + len] === values[i]) {
+          len++;
+        }
+        if (len >= 2) streaks[len] = (streaks[len] || 0) + 1;
+        i += len;
+      }
+      return streaks;
+    }
+
+    verifyBtn.addEventListener("click", () => {
+      const error = validateBounds();
+      if (error) { numError.textContent = error; return; }
+
+      const min = parseInt(minInput.value, 10);
+      const max = parseInt(maxInput.value, 10);
+      const range = max - min + 1;
+      const N = 100_000;
+
+      verifyBtn.disabled = true;
+      verifyBtn.textContent = "Running " + N.toLocaleString() + " iterations...";
+      diagOutput.classList.remove("visible");
+
+      setTimeout(() => {
+        const start = performance.now();
+        const values = new Array(N);
+        for (let j = 0; j < N; j++) values[j] = secureRandomInt(min, max);
+        const elapsed = ((performance.now() - start) / 1000).toFixed(2);
+
+        const counts = analyzeDistribution(values, min, max);
+        const expected = N / range;
+        const lines = [];
+
+        if (range <= 20) {
+          lines.push("Distribution:");
+          for (let v = min; v <= max; v++) {
+            const c = counts.get(v) || 0;
+            const pct = (c / N * 100).toFixed(3);
+            const delta = ((c - expected) / expected * 100).toFixed(2);
+            lines.push("  " + v + ": " + c.toLocaleString() + " (" + pct + "%) " + delta + "%");
+          }
+        } else {
+          lines.push("Distribution: " + range + " values, expected ~" + expected.toFixed(0) + " each");
+        }
+
+        const streaks = analyzeStreaks(values);
+        lines.push("\nStreak lengths (observed vs expected):");
+        const pSame = 1 / range;
+        const windows = N - 1;
+        for (let len = 2; len <= 8; len++) {
+          const obs = streaks[len] || 0;
+          const expStreak = windows * Math.pow(pSame, len - 1) * (1 - pSame);
+          if (expStreak < 0.5 && obs === 0) continue;
+          lines.push("  Len " + len + ": " + obs.toLocaleString() + " (expected ~" + expStreak.toFixed(1) + ")");
+        }
+
+        lines.push("\nGenerated: " + N.toLocaleString() + " values in " + elapsed + "s");
+        lines.push("Source: crypto.getRandomValues() — your browser CSPRNG");
+
+        diagOutput.textContent = lines.join("\n");
+        diagOutput.classList.add("visible");
+        verifyBtn.disabled = false;
+        verifyBtn.textContent = "🔬 Verify Fairness (browser CSPRNG)";
+      }, 50);
     });
 
     // ── Coin toss ───────────────────────────────────────────
