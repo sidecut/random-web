@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f0f14">
+  <link rel="manifest" href="manifest.json">
   <title>Random Web</title>
+  <link rel="icon" href="icon.svg">
   <style>
     :root {
       --bg: #0f0f14;
@@ -825,6 +828,10 @@
       if (prefs.tab) switchTab(prefs.tab);
     }
     init();
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js");
+    }
   </script>
 </body>
 </html>
