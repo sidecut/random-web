@@ -2,35 +2,55 @@
 
 ## Project Status
 
-This project is in its initial state. No source code, build configuration, or
-commits exist yet. The sections below document what is present and provide
-guidance for bootstrapping.
+Single-page web app. Plain HTML/CSS/JS — no framework, no build step, no
+dependencies beyond a browser.
+
+## Architecture
+
+`index.html` is the entire application. It embeds all CSS in a `<style>` block
+and all JavaScript in a `<script>` block at the bottom of `<body>`. The app
+has two tabs sharing one card layout:
+
+- **Numbers** — configurable min/max bounds, CSPRNG-backed integer generation
+- **Coin Toss** — single-bit CSPRNG toss with H/T display, stats tracker
+
+Data flow:
+1. User sets bounds → persisted to `localStorage` under key `random-web-prefs`
+2. `crypto.getRandomValues()` feeds both `secureRandomInt()` (rejection-sampled
+   Uint32) and `secureRandomBoolean()` (bit-0 of Uint8)
+3. Results display with CSS animations; bounds persist across sessions
 
 ## Key Files & Directories
 
+- `index.html` — the app: structure, styles, and logic in one file
+- `_test_random.py` — statistical verification of CSPRNG algorithms (Python)
 - `.gitignore` — ignores `.codewhale/*` (except `constitution.json`) and
   `.deepseek/`
-- `.codewhale/` — CodeWhale project configuration directory
-  - `instructions.md` — auto-generated project overview (editable)
+- `.codewhale/` — CodeWhale project configuration
 
 ## Build / Test / Lint
 
-No build system is configured. When one is added, document the following here:
-- Dependency installation commands
-- Build command
-- Test command (all + single)
-- Lint / format commands
+No build system. To run: open `index.html` in any modern browser.
+
+- **Statistical test**: `python3 _test_random.py`
+  Validates the CSPRNG number generator (uniform distribution) and coin toss
+  (bit-level fairness) with 100k–1M iterations each.
 
 ## Git Workflow
 
-No commits exist on `master`. The `.gitignore` is staged for initial commit.
+No commits yet on `master`. Keep it simple — meaningful messages, squash
+before PR if needed.
 
 ## Tips for AI Agents
 
-- This project is a blank slate. The `random-web` name suggests a web project,
-  but no technology choices have been made yet.
-- Before generating code, determine the language, framework, and build system.
-- When a build system is introduced, update this file with the relevant commands
-  and conventions.
-- The `.codewhale/instructions.md` file is safe to edit or replace as the
-  project evolves.
+- There is no framework. CSS is hand-written with custom properties for theming
+  and a single `@media (min-width: 540px)` breakpoint for desktop.
+- The RNG logic uses `crypto.getRandomValues()` directly — do not replace it
+  with `Math.random()`.
+- `localStorage` persistence is JSON under a single key (`random-web-prefs`).
+  Changing the shape of stored data may break existing sessions — handle
+  gracefully.
+- Animations are driven by CSS `@keyframes` and triggered by JS class toggles
+  with `void el.offsetWidth` reflow hacks. Respect `prefers-reduced-motion`.
+- Input validation caps range at 1,000,000 max difference. Min/max inputs
+  themselves are unbounded (0–1,000,000).
