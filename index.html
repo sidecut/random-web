@@ -175,6 +175,18 @@
     .btn-primary:active {
       transform: scale(0.98);
     }
+    .btn-secondary {
+      background: var(--surface-hover);
+      color: var(--text);
+      margin-top: 8px;
+    }
+    .btn-secondary:hover {
+      background: #2e2e48;
+      box-shadow: 0 0 16px rgba(124, 92, 252, 0.15);
+    }
+    .btn-secondary:active {
+      transform: scale(0.98);
+    }
 
     /* Result display */
     .result-area {
@@ -421,6 +433,10 @@
           Generate Number
         </button>
 
+        <button class="btn btn-secondary" id="shuffle-btn">
+          🔀 Shuffle Range
+        </button>
+
         <div class="result-area" id="num-result-area">
           <span class="result-label">Last result</span>
           <div class="result-row">
@@ -516,6 +532,7 @@
     const minInput = document.getElementById("min");
     const maxInput = document.getElementById("max");
     const generateBtn = document.getElementById("generate-btn");
+    const shuffleBtn = document.getElementById("shuffle-btn");
     const numResult = document.getElementById("num-result");
     const numRange = document.getElementById("num-range");
     const numError = document.getElementById("num-error");
@@ -600,7 +617,52 @@
       savePrefs({ ...loadPrefs(), min, max });
     }
 
+    function shuffleArray(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = secureRandomInt(0, i);
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function shuffleRange() {
+      const error = validateBounds();
+      numError.textContent = error || "";
+      if (error) return;
+
+      const min = parseInt(minInput.value, 10);
+      const max = parseInt(maxInput.value, 10);
+      const range = max - min + 1;
+
+      const values = new Array(range);
+      for (let v = min; v <= max; v++) values[v - min] = v;
+
+      const shuffled = shuffleArray(values);
+
+      const DISPLAY_CAP = 1000;
+      let display;
+      if (shuffled.length <= DISPLAY_CAP) {
+        display = shuffled.join(" ");
+      } else {
+        const head = shuffled.slice(0, 20);
+        const tail = shuffled.slice(-20);
+        display = head.join(" ") + " ... " + tail.join(" ");
+      }
+
+      numResult.textContent = display;
+      numResult.classList.remove("pop");
+      void numResult.offsetWidth;
+      numResult.classList.add("pop");
+      numRange.textContent = `${min} – ${max}  (${range.toLocaleString()} items)`;
+      numError.textContent = "";
+      copyBtn.disabled = false;
+      copyBtn.textContent = "📋 Copy";
+      copyBtn.classList.remove("copied");
+    }
+
     generateBtn.addEventListener("click", generateNumber);
+    shuffleBtn.addEventListener("click", shuffleRange);
 
     [minInput, maxInput].forEach((el) => {
       el.addEventListener("change", persistBounds);
