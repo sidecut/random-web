@@ -550,6 +550,7 @@
       tabCoin.classList.toggle("active", !isNumbers);
       panelNumbers.classList.toggle("active", isNumbers);
       panelCoin.classList.toggle("active", !isNumbers);
+      savePrefs({ ...loadPrefs(), tab });
     }
     tabNumbers.addEventListener("click", () => switchTab("numbers"));
     tabCoin.addEventListener("click", () => switchTab("coin"));
@@ -821,6 +822,7 @@
         coinStats = { ...prefs.coinStats };
         updateCoinStats();
       }
+      if (prefs.tab) switchTab(prefs.tab);
     }
     init();
   </script>
