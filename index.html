@@ -219,12 +219,6 @@
       color: var(--text-muted);
       font-family: var(--font-mono);
     }
-    .result-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
     .copy-btn {
       display: inline-flex;
       align-items: center;
@@ -439,10 +433,8 @@
 
         <div class="result-area" id="num-result-area">
           <span class="result-label">Last result</span>
-          <div class="result-row">
-            <span class="result-value" id="num-result">—</span>
-            <button class="copy-btn" id="copy-btn" disabled>📋 Copy</button>
-          </div>
+          <button class="copy-btn" id="copy-btn" disabled>📋 Copy</button>
+          <span class="result-value" id="num-result">—</span>
           <span class="result-range" id="num-range"></span>
         </div>
 
