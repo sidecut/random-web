@@ -538,7 +538,7 @@
     function persistBounds() {
       const min = parseInt(minInput.value, 10);
       const max = parseInt(maxInput.value, 10);
-      savePrefs({ min, max, ...loadPrefs() });
+      savePrefs({ ...loadPrefs(), min, max });
     }
 
     generateBtn.addEventListener("click", generateNumber);
