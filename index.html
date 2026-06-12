@@ -214,6 +214,11 @@
     .result-value.pop {
       animation: pop 0.35s ease-out;
     }
+    .result-value.shuffle {
+      font-size: 2rem;
+      line-height: 1.3;
+      word-break: break-all;
+    }
     .result-range {
       font-size: 0.8rem;
       color: var(--text-muted);
@@ -387,6 +392,7 @@
       .fields { flex-wrap: nowrap; }
       .coin { width: 140px; height: 140px; font-size: 2.5rem; }
       .result-value { font-size: 5rem; }
+      .result-value.shuffle { font-size: 2.5rem; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -571,7 +577,7 @@
         const result = secureRandomInt(min, max);
         lastNumResult = result;
         numResult.textContent = result;
-        numResult.classList.remove("pop");
+        numResult.classList.remove("pop", "shuffle");
         void numResult.offsetWidth; // reflow
         numResult.classList.add("pop");
         numRange.textContent = `${min} – ${max}`;
@@ -643,9 +649,9 @@
       }
 
       numResult.textContent = display;
-      numResult.classList.remove("pop");
+      numResult.classList.remove("pop", "shuffle");
       void numResult.offsetWidth;
-      numResult.classList.add("pop");
+      numResult.classList.add("pop", "shuffle");
       numRange.textContent = `${min} – ${max}  (${range.toLocaleString()} items)`;
       numError.textContent = "";
       copyBtn.disabled = false;
