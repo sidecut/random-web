@@ -102,10 +102,7 @@
 
       /* Panels */
       .tab-panel {
-        /* display controlled by Alpine x-show; :not(.active) is the no-JS fallback */
-      }
-      .tab-panel:not(.active) {
-        display: none;
+        /* visibility controlled by Alpine x-show */
       }
       .tab-panel.active {
         display: block;
@@ -472,7 +469,7 @@
 
       <!-- Numbers panel -->
       <div class="card">
-        <div class="tab-panel" x-show="activeTab === 'numbers'">
+        <div class="tab-panel" :class="{ active: activeTab === 'numbers' }" x-show="activeTab === 'numbers'">
           <div class="fields">
             <div class="field">
               <label for="min">Min</label>
@@ -545,7 +542,7 @@
         </div>
 
         <!-- Coin panel -->
-        <div class="tab-panel" x-show="activeTab === 'coin'">
+        <div class="tab-panel" :class="{ active: activeTab === 'coin' }" x-show="activeTab === 'coin'">
           <button class="btn btn-primary" @click="tossCoin">Toss Coin</button>
 
           <div class="coin-container">
