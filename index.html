@@ -38,106 +38,94 @@
         font-family: var(--font);
         background: var(--bg);
         color: var(--text);
-        min-height: 100dvh;
+        min-height: 100vh;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
         padding: 16px;
-        -webkit-font-smoothing: antialiased;
+        padding-top: max(40px, 10vh);
       }
 
       .app {
         width: 100%;
-        max-width: 500px;
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
+        max-width: 480px;
       }
 
-      /* Header */
       .header {
         text-align: center;
+        margin-bottom: 20px;
       }
       .header h1 {
-        font-size: 1.75rem;
+        font-size: 1.6rem;
         font-weight: 700;
         letter-spacing: -0.02em;
       }
       .header p {
+        font-size: 0.85rem;
         color: var(--text-muted);
-        font-size: 0.9rem;
         margin-top: 4px;
       }
 
       /* Tabs */
       .tabs {
         display: flex;
-        background: var(--surface);
-        border-radius: var(--radius);
-        padding: 4px;
-        gap: 4px;
+        gap: 8px;
+        margin-bottom: 16px;
       }
       .tab-btn {
         flex: 1;
         padding: 10px 0;
-        border: none;
-        border-radius: calc(var(--radius) - 4px);
-        background: transparent;
+        border: 1px solid #2a2a3a;
+        border-radius: var(--radius);
+        background: var(--surface);
         color: var(--text-muted);
         font-family: var(--font);
         font-size: 0.9rem;
-        font-weight: 500;
         cursor: pointer;
         transition: all 0.2s ease;
       }
       .tab-btn.active {
         background: var(--surface-hover);
         color: var(--text);
+        border-color: var(--accent);
+        box-shadow: 0 0 12px var(--accent-glow);
       }
       .tab-btn:hover:not(.active) {
         color: var(--text);
       }
 
-      /* Cards */
+      /* Card */
       .card {
         background: var(--surface);
         border-radius: var(--radius);
-        padding: 28px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
+        padding: 24px;
       }
 
-      /* Tab panels */
+      /* Panels */
       .tab-panel {
-        display: none;
+        /* visibility controlled by Alpine x-show */
       }
       .tab-panel.active {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
+        display: block;
       }
 
-      /* Form */
+      /* Fields */
       .fields {
         display: flex;
         gap: 12px;
-        align-items: center;
-        flex-wrap: wrap;
+        margin-bottom: 8px;
       }
       .field {
         flex: 1;
-        min-width: 80px;
         display: flex;
         flex-direction: column;
         gap: 4px;
       }
       .field label {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.05em;
         color: var(--text-muted);
-        font-weight: 600;
       }
       .field input {
         width: 100%;
@@ -147,57 +135,44 @@
         background: var(--bg);
         color: var(--text);
         font-family: var(--font-mono);
-        font-size: 1rem;
-        outline: none;
+        font-size: 0.95rem;
         transition: border-color 0.2s;
-        -moz-appearance: textfield;
-      }
-      .field input::-webkit-outer-spin-button,
-      .field input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
       }
       .field input:focus {
+        outline: none;
         border-color: var(--accent);
       }
 
       /* Buttons */
       .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 14px 28px;
+        width: 100%;
+        padding: 12px;
         border: none;
         border-radius: var(--radius-sm);
         font-family: var(--font);
-        font-size: 1rem;
+        font-size: 0.95rem;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s ease;
-        width: 100%;
+        margin-top: 12px;
       }
       .btn-primary {
         background: var(--accent);
         color: #fff;
       }
       .btn-primary:hover {
-        background: #9178ff;
-        box-shadow: 0 0 24px var(--accent-glow);
-      }
-      .btn-primary:active {
-        transform: scale(0.98);
+        filter: brightness(1.1);
+        box-shadow: 0 4px 16px var(--accent-glow);
       }
       .btn-secondary {
         background: var(--surface-hover);
         color: var(--text);
-        margin-top: 8px;
+        border: 1px solid #2a2a3a;
       }
       .btn-secondary:hover {
-        background: #2e2e48;
-        box-shadow: 0 0 16px rgba(124, 92, 252, 0.15);
+        border-color: var(--accent);
       }
-      .btn-secondary:active {
+      .btn:active {
         transform: scale(0.98);
       }
 
@@ -209,6 +184,9 @@
         gap: 8px;
         min-height: 80px;
         justify-content: center;
+      }
+      .numbers-result-area {
+        margin-top: 16px;
       }
       .result-label {
         font-size: 0.8rem;
@@ -437,6 +415,7 @@
       @media (min-width: 540px) {
         body {
           padding: 32px;
+          padding-top: max(64px, 12vh);
         }
         .header h1 {
           font-size: 2rem;
@@ -467,36 +446,54 @@
         }
       }
     </style>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"
+    ></script>
   </head>
   <body>
-    <div class="app">
+    <div class="app" x-data="app">
       <header class="header">
         <h1>Random Web</h1>
         <p>Cryptographically secure randomness in your browser</p>
       </header>
 
       <nav class="tabs">
-        <button class="tab-btn active" data-tab="numbers" id="tab-numbers">
+        <button
+          class="tab-btn"
+          :class="{ active: activeTab === 'numbers' }"
+          @click="switchTab('numbers')"
+        >
           🎲 Numbers
         </button>
-        <button class="tab-btn" data-tab="coin" id="tab-coin">
+        <button
+          class="tab-btn"
+          :class="{ active: activeTab === 'coin' }"
+          @click="switchTab('coin')"
+        >
           🪙 Coin Toss
         </button>
       </nav>
 
       <!-- Numbers panel -->
       <div class="card">
-        <div class="tab-panel active" id="panel-numbers">
+        <div
+          class="tab-panel"
+          :class="{ active: activeTab === 'numbers' }"
+          x-show="activeTab === 'numbers'"
+        >
           <div class="fields">
             <div class="field">
               <label for="min">Min</label>
               <input
                 type="number"
                 id="min"
-                value="1"
+                x-model.number="min"
                 min="0"
                 max="1000000"
                 inputmode="numeric"
+                @change="persistBounds"
+                @keydown.enter.prevent="persistBounds(); generateNumber()"
               />
             </div>
             <div class="field">
@@ -504,64 +501,96 @@
               <input
                 type="number"
                 id="max"
-                value="100"
+                x-model.number="max"
                 min="1"
                 max="1000000"
                 inputmode="numeric"
+                @change="persistBounds"
+                @keydown.enter.prevent="persistBounds(); generateNumber()"
               />
             </div>
           </div>
 
-          <div class="error-msg" id="num-error"></div>
+          <div class="error-msg" x-show="error" x-text="error"></div>
 
-          <button class="btn btn-primary" id="generate-btn">
+          <button class="btn btn-primary" @click="generateNumber">
             Generate Number
           </button>
 
-          <button class="btn btn-secondary" id="shuffle-btn">
+          <button class="btn btn-secondary" @click="shuffleRange">
             🔀 Shuffle Range
           </button>
 
-          <div class="result-area" id="num-result-area">
+          <div class="result-area numbers-result-area">
             <span class="result-label">Last result</span>
-            <button class="copy-btn" id="copy-btn" disabled>📋 Copy</button>
-            <span class="result-value" id="num-result">—</span>
-            <span class="result-range" id="num-range"></span>
+            <button
+              class="copy-btn"
+              :class="copyBtnClass"
+              :disabled="!hasResult"
+              @click="copy"
+              x-text="copyBtnLabel"
+            ></button>
+            <span
+              class="result-value"
+              :class="{ pop: showPop, shuffle: showShuffle }"
+              x-text="lastResult"
+            ></span>
+            <span class="result-range" x-text="resultRange"></span>
           </div>
 
           <div class="diag-section">
-            <button class="diag-btn" id="verify-btn">
-              🔬 Verify Fairness (browser CSPRNG)
-            </button>
-            <div class="diag-output" id="diag-output"></div>
+            <button
+              class="diag-btn"
+              :disabled="diagRunning"
+              @click="runDiagnostic"
+              x-text="diagBtnLabel"
+            ></button>
+            <div
+              class="diag-output"
+              :class="{ visible: showDiag }"
+              x-text="diagText"
+            ></div>
           </div>
         </div>
 
         <!-- Coin panel -->
-        <div class="tab-panel" id="panel-coin">
-          <button class="btn btn-primary" id="toss-btn">Toss Coin</button>
+        <div
+          class="tab-panel"
+          :class="{ active: activeTab === 'coin' }"
+          x-show="activeTab === 'coin'"
+        >
+          <button class="btn btn-primary" @click="tossCoin">Toss Coin</button>
 
           <div class="coin-container">
-            <div class="coin" id="coin-display">?</div>
+            <div class="coin" x-ref="coinDisplay">?</div>
           </div>
-          <div class="coin-result" id="coin-result-text"></div>
+          <div
+            class="coin-result"
+            :class="coinResultClass"
+            x-text="coinResultText"
+          ></div>
 
           <div class="stats-row">
             <div class="stat">
-              <div class="stat-value" id="heads-count">0</div>
+              <div class="stat-value" x-text="coinStats.heads"></div>
               <div class="stat-label">Heads</div>
             </div>
             <div class="stat">
-              <div class="stat-value" id="tails-count">0</div>
+              <div class="stat-value" x-text="coinStats.tails"></div>
               <div class="stat-label">Tails</div>
             </div>
             <div class="stat">
-              <div class="stat-value" id="toss-total">0</div>
+              <div
+                class="stat-value"
+                x-text="coinStats.heads + coinStats.tails"
+              ></div>
               <div class="stat-label">Total</div>
             </div>
           </div>
 
-          <button class="reset-link" id="reset-coin-stats">Clear stats</button>
+          <button class="reset-link" @click="resetCoinStats">
+            Clear stats
+          </button>
         </div>
       </div>
     </div>
@@ -585,7 +614,7 @@
       function secureRandomBoolean() {
         const buf = new Uint8Array(1);
         crypto.getRandomValues(buf);
-        return (buf[0] & 1) === 0; // even = heads
+        return (buf[0] & 1) === 0;
       }
 
       // ── localStorage helpers ────────────────────────────────
@@ -607,102 +636,7 @@
         }
       }
 
-      // ── DOM refs ────────────────────────────────────────────
-      const tabNumbers = document.getElementById("tab-numbers");
-      const tabCoin = document.getElementById("tab-coin");
-      const panelNumbers = document.getElementById("panel-numbers");
-      const panelCoin = document.getElementById("panel-coin");
-      const minInput = document.getElementById("min");
-      const maxInput = document.getElementById("max");
-      const generateBtn = document.getElementById("generate-btn");
-      const shuffleBtn = document.getElementById("shuffle-btn");
-      const numResult = document.getElementById("num-result");
-      const numRange = document.getElementById("num-range");
-      const numError = document.getElementById("num-error");
-      const copyBtn = document.getElementById("copy-btn");
-      const tossBtn = document.getElementById("toss-btn");
-      const coinDisplay = document.getElementById("coin-display");
-      const coinResultText = document.getElementById("coin-result-text");
-      const headsCount = document.getElementById("heads-count");
-      const tailsCount = document.getElementById("tails-count");
-      const tossTotal = document.getElementById("toss-total");
-      const resetCoinStats = document.getElementById("reset-coin-stats");
-
-      // ── Tab switching ───────────────────────────────────────
-      function switchTab(tab) {
-        const isNumbers = tab === "numbers";
-        tabNumbers.classList.toggle("active", isNumbers);
-        tabCoin.classList.toggle("active", !isNumbers);
-        panelNumbers.classList.toggle("active", isNumbers);
-        panelCoin.classList.toggle("active", !isNumbers);
-        savePrefs({ ...loadPrefs(), tab });
-      }
-      tabNumbers.addEventListener("click", () => switchTab("numbers"));
-      tabCoin.addEventListener("click", () => switchTab("coin"));
-
-      // ── Number generation ───────────────────────────────────
-      let lastNumResult = null;
-
-      function validateBounds() {
-        const min = parseInt(minInput.value, 10);
-        const max = parseInt(maxInput.value, 10);
-        if (isNaN(min) || isNaN(max))
-          return "Please enter numbers for both bounds.";
-        if (min > max) return "Min must be less than or equal to Max.";
-        if (max - min > 1_000_000)
-          return "Range too large. Max difference is 1,000,000.";
-        return null;
-      }
-
-      function generateNumber() {
-        const error = validateBounds();
-        numError.textContent = error || "";
-        if (error) return;
-
-        const min = parseInt(minInput.value, 10);
-        const max = parseInt(maxInput.value, 10);
-        try {
-          const result = secureRandomInt(min, max);
-          lastNumResult = result;
-          numResult.textContent = result;
-          numResult.classList.remove("pop", "shuffle");
-          void numResult.offsetWidth; // reflow
-          numResult.classList.add("pop");
-          numRange.textContent = `${min} – ${max}`;
-          numError.textContent = "";
-          copyBtn.disabled = false;
-          copyBtn.textContent = "📋 Copy";
-          copyBtn.classList.remove("copied");
-        } catch (e) {
-          numError.textContent = e.message;
-        }
-      }
-
-      copyBtn.addEventListener("click", async () => {
-        const text = numResult.textContent;
-        if (!text || text === "—") return;
-        try {
-          await navigator.clipboard.writeText(text);
-          copyBtn.textContent = "✓ Copied!";
-          copyBtn.classList.add("copied");
-          setTimeout(() => {
-            copyBtn.textContent = "📋 Copy";
-            copyBtn.classList.remove("copied");
-          }, 1500);
-        } catch {
-          copyBtn.textContent = "⚠ Failed";
-          setTimeout(() => {
-            copyBtn.textContent = "📋 Copy";
-          }, 1500);
-        }
-      });
-
-      function persistBounds() {
-        const min = parseInt(minInput.value, 10);
-        const max = parseInt(maxInput.value, 10);
-        savePrefs({ ...loadPrefs(), min, max });
-      }
-
+      // ── Fisher-Yates shuffle ────────────────────────────────
       function shuffleArray(arr) {
         const a = arr.slice();
         for (let i = a.length - 1; i > 0; i--) {
@@ -712,59 +646,7 @@
         return a;
       }
 
-      function shuffleRange() {
-        const error = validateBounds();
-        numError.textContent = error || "";
-        if (error) return;
-
-        const min = parseInt(minInput.value, 10);
-        const max = parseInt(maxInput.value, 10);
-        const range = max - min + 1;
-
-        const values = new Array(range);
-        for (let v = min; v <= max; v++) values[v - min] = v;
-
-        const shuffled = shuffleArray(values);
-
-        const DISPLAY_CAP = 1000;
-        let display;
-        if (shuffled.length <= DISPLAY_CAP) {
-          display = shuffled.join(" ");
-        } else {
-          const head = shuffled.slice(0, 20);
-          const tail = shuffled.slice(-20);
-          display = head.join(" ") + " ... " + tail.join(" ");
-        }
-
-        numResult.textContent = display;
-        numResult.classList.remove("pop", "shuffle");
-        void numResult.offsetWidth;
-        numResult.classList.add("pop", "shuffle");
-        numRange.textContent = `${min} – ${max}  (${range.toLocaleString()} items)`;
-        numError.textContent = "";
-        copyBtn.disabled = false;
-        copyBtn.textContent = "📋 Copy";
-        copyBtn.classList.remove("copied");
-      }
-
-      generateBtn.addEventListener("click", generateNumber);
-      shuffleBtn.addEventListener("click", shuffleRange);
-
-      [minInput, maxInput].forEach((el) => {
-        el.addEventListener("change", persistBounds);
-        el.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            persistBounds();
-            generateNumber();
-          }
-        });
-      });
-
-      // ── Fairness diagnostic ─────────────────────────────────
-      const verifyBtn = document.getElementById("verify-btn");
-      const diagOutput = document.getElementById("diag-output");
-
+      // ── Fairness analysis helpers ───────────────────────────
       function analyzeDistribution(values, min, max) {
         const counts = new Map();
         for (const v of values) {
@@ -787,207 +669,309 @@
         return streaks;
       }
 
-      verifyBtn.addEventListener("click", () => {
-        const error = validateBounds();
-        if (error) {
-          numError.textContent = error;
-          return;
-        }
-
-        const min = parseInt(minInput.value, 10);
-        const max = parseInt(maxInput.value, 10);
-        const range = max - min + 1;
-        const N = 100_000;
-
-        verifyBtn.disabled = true;
-        verifyBtn.textContent =
-          "Running " + N.toLocaleString() + " iterations...";
-        diagOutput.classList.remove("visible");
-
-        setTimeout(() => {
-          const start = performance.now();
-          const values = new Array(N);
-          for (let j = 0; j < N; j++) values[j] = secureRandomInt(min, max);
-          const elapsed = ((performance.now() - start) / 1000).toFixed(2);
-
-          const counts = analyzeDistribution(values, min, max);
-          const expected = N / range;
-          const lines = [];
-
-          if (range <= 20) {
-            lines.push("Distribution:");
-            for (let v = min; v <= max; v++) {
-              const c = counts.get(v) || 0;
-              const pct = ((c / N) * 100).toFixed(3);
-              const delta = (((c - expected) / expected) * 100).toFixed(2);
-              lines.push(
-                "  " +
-                  v +
-                  ": " +
-                  c.toLocaleString() +
-                  " (" +
-                  pct +
-                  "%) " +
-                  delta +
-                  "%",
-              );
-            }
-          } else {
-            lines.push(
-              "Distribution: " +
-                range +
-                " values, expected ~" +
-                expected.toFixed(0) +
-                " each",
-            );
-          }
-
-          const streaks = analyzeStreaks(values);
-          lines.push("\nStreak lengths (observed vs expected):");
-          const pSame = 1 / range;
-          const windows = N - 1;
-          for (let len = 2; len <= 8; len++) {
-            const obs = streaks[len] || 0;
-            const expStreak = windows * Math.pow(pSame, len - 1) * (1 - pSame);
-            if (expStreak < 0.5 && obs === 0) continue;
-            lines.push(
-              "  Len " +
-                len +
-                ": " +
-                obs.toLocaleString() +
-                " (expected ~" +
-                expStreak.toFixed(1) +
-                ")",
-            );
-          }
-
-          lines.push(
-            "\nGenerated: " +
-              N.toLocaleString() +
-              " values in " +
-              elapsed +
-              "s",
-          );
-          lines.push("Source: crypto.getRandomValues() — your browser CSPRNG");
-
-          diagOutput.textContent = lines.join("\n");
-          diagOutput.classList.add("visible");
-          verifyBtn.disabled = false;
-          verifyBtn.textContent = "🔬 Verify Fairness (browser CSPRNG)";
-        }, 50);
-      });
-
-      // ── Coin toss ───────────────────────────────────────────
-      let coinStats = { heads: 0, tails: 0 };
-
-      function updateCoinStats() {
-        headsCount.textContent = coinStats.heads;
-        tailsCount.textContent = coinStats.tails;
-        tossTotal.textContent = coinStats.heads + coinStats.tails;
-      }
-
+      // ── Alpine component ────────────────────────────────────
       const FLIP_MS = 160;
-      let coinFlipping = false;
 
-      function showFace(isHeads) {
-        coinDisplay.textContent = "";
-        coinDisplay.classList.toggle("face-heads", isHeads);
-        coinDisplay.classList.toggle("face-tails", !isHeads);
-      }
+      document.addEventListener("alpine:init", () => {
+        Alpine.data("app", () => ({
+          // Tab
+          activeTab: "numbers",
 
-      function settleCoin(isHeads) {
-        coinDisplay.classList.remove("flip");
-        coinResultText.textContent = isHeads ? "Heads" : "Tails";
-        coinResultText.className = `coin-result ${isHeads ? "heads" : "tails"}`;
-        coinResultText.classList.add("pop");
-        coinStats[isHeads ? "heads" : "tails"]++;
-        updateCoinStats();
-        saveCoinStats();
-        coinFlipping = false;
-      }
+          // Numbers
+          min: 1,
+          max: 100,
+          lastResult: "—",
+          hasResult: false,
+          error: "",
+          showPop: false,
+          showShuffle: false,
+          resultRange: "",
 
-      function tossCoin() {
-        if (coinFlipping) return;
-        coinResultText.textContent = "";
-        coinResultText.className = "coin-result";
+          // Copy
+          copyBtnLabel: "📋 Copy",
+          copyBtnClass: "",
 
-        const isHeads = secureRandomBoolean();
+          // Diagnostic
+          diagRunning: false,
+          diagBtnLabel: "🔬 Verify Fairness (browser CSPRNG)",
+          showDiag: false,
+          diagText: "",
 
-        const reduceMotion =
-          window.matchMedia &&
-          window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (reduceMotion) {
-          showFace(isHeads);
-          settleCoin(isHeads);
-          return;
-        }
+          // Coin
+          coinStats: { heads: 0, tails: 0 },
+          coinResultText: "",
+          coinResultClass: "coin-result",
+          coinFlipping: false,
 
-        // Always start as heads. Even flips land heads, odd flips land tails,
-        // so the flip count's parity must match the random outcome.
-        let flips = 3 + Math.floor(Math.random() * 3); // 3 to 5 flips
-        if ((flips % 2 === 0) !== isHeads) flips++;
+          // ── Lifecycle ─────────────────────────────────────
+          init() {
+            const prefs = loadPrefs();
+            if (typeof prefs.min === "number") this.min = prefs.min;
+            if (typeof prefs.max === "number") this.max = prefs.max;
+            if (prefs.coinStats) {
+              this.coinStats = { ...prefs.coinStats };
+            }
+            if (prefs.tab) this.activeTab = prefs.tab;
 
-        coinFlipping = true;
-        let showingHeads = true;
-        showFace(showingHeads);
+            this.$watch("min", () => this.persistBounds());
+            this.$watch("max", () => this.persistBounds());
+            this.$watch("activeTab", () => this.persistTab());
+          },
 
-        let done = 0;
-        function doFlip() {
-          coinDisplay.classList.remove("flip");
-          void coinDisplay.offsetWidth;
-          coinDisplay.classList.add("flip");
-          // Swap the visible face while the coin is edge-on (mid-flip).
-          setTimeout(() => {
-            showingHeads = !showingHeads;
-            showFace(showingHeads);
-          }, FLIP_MS / 2);
+          // ── Tab ───────────────────────────────────────────
+          switchTab(tab) {
+            this.activeTab = tab;
+          },
 
-          done++;
-          if (done < flips) {
-            setTimeout(doFlip, FLIP_MS);
-          } else {
-            setTimeout(() => settleCoin(isHeads), FLIP_MS);
-          }
-        }
-        doFlip();
-      }
+          persistTab() {
+            savePrefs({ ...loadPrefs(), tab: this.activeTab });
+          },
 
-      function saveCoinStats() {
-        savePrefs({ ...loadPrefs(), coinStats });
-      }
+          // ── Validation ────────────────────────────────────
+          validateBounds() {
+            if (isNaN(this.min) || isNaN(this.max))
+              return "Please enter numbers for both bounds.";
+            if (this.min > this.max)
+              return "Min must be less than or equal to Max.";
+            if (this.max - this.min > 1_000_000)
+              return "Range too large. Max difference is 1,000,000.";
+            return null;
+          },
 
-      function loadCoinStats() {
-        const prefs = loadPrefs();
-        if (prefs.coinStats) {
-          coinStats = { ...prefs.coinStats };
-          updateCoinStats();
-        }
-      }
+          // ── Number generation ─────────────────────────────
+          generateNumber() {
+            const err = this.validateBounds();
+            this.error = err || "";
+            if (err) return;
 
-      tossBtn.addEventListener("click", tossCoin);
+            try {
+              const result = secureRandomInt(this.min, this.max);
+              this.lastResult = String(result);
+              this.hasResult = true;
+              this.resultRange = `${this.min} – ${this.max}`;
+              this.error = "";
+              // Trigger pop animation via flag reset
+              this.showPop = false;
+              this.showShuffle = false;
+              this.$nextTick(() => {
+                this.showPop = true;
+              });
+            } catch (e) {
+              this.error = e.message;
+            }
+          },
 
-      resetCoinStats.addEventListener("click", () => {
-        coinStats = { heads: 0, tails: 0 };
-        updateCoinStats();
-        saveCoinStats();
-        coinDisplay.textContent = "?";
-        coinResultText.textContent = "";
-        coinDisplay.classList.remove("face-heads", "face-tails");
+          // ── Shuffle ───────────────────────────────────────
+          shuffleRange() {
+            const err = this.validateBounds();
+            this.error = err || "";
+            if (err) return;
+
+            const range = this.max - this.min + 1;
+            const values = new Array(range);
+            for (let v = this.min; v <= this.max; v++) values[v - this.min] = v;
+
+            const shuffled = shuffleArray(values);
+
+            const DISPLAY_CAP = 1000;
+            let display;
+            if (shuffled.length <= DISPLAY_CAP) {
+              display = shuffled.join(" ");
+            } else {
+              const head = shuffled.slice(0, 20);
+              const tail = shuffled.slice(-20);
+              display = head.join(" ") + " ... " + tail.join(" ");
+            }
+
+            this.lastResult = display;
+            this.hasResult = true;
+            this.showShuffle = true;
+            this.resultRange = `${this.min} – ${this.max}  (${range.toLocaleString()} items)`;
+            this.error = "";
+            this.showPop = false;
+            this.$nextTick(() => {
+              this.showPop = true;
+            });
+          },
+
+          // ── Persistence ───────────────────────────────────
+          persistBounds() {
+            savePrefs({ ...loadPrefs(), min: this.min, max: this.max });
+          },
+
+          // ── Copy ──────────────────────────────────────────
+          async copy() {
+            const text = this.lastResult;
+            if (!text || text === "—") return;
+            try {
+              await navigator.clipboard.writeText(text);
+              this.copyBtnLabel = "✓ Copied!";
+              this.copyBtnClass = "copied";
+              setTimeout(() => {
+                this.copyBtnLabel = "📋 Copy";
+                this.copyBtnClass = "";
+              }, 1500);
+            } catch {
+              this.copyBtnLabel = "⚠ Failed";
+              setTimeout(() => {
+                this.copyBtnLabel = "📋 Copy";
+              }, 1500);
+            }
+          },
+
+          // ── Diagnostic ────────────────────────────────────
+          runDiagnostic() {
+            const err = this.validateBounds();
+            if (err) {
+              this.error = err;
+              return;
+            }
+
+            const N = 100_000;
+            this.diagRunning = true;
+            this.diagBtnLabel = `Running ${N.toLocaleString()} iterations...`;
+            this.showDiag = false;
+
+            setTimeout(() => {
+              const start = performance.now();
+              const values = new Array(N);
+              for (let j = 0; j < N; j++)
+                values[j] = secureRandomInt(this.min, this.max);
+              const elapsed = ((performance.now() - start) / 1000).toFixed(2);
+
+              const range = this.max - this.min + 1;
+              const counts = analyzeDistribution(values, this.min, this.max);
+              const expected = N / range;
+              const lines = [];
+
+              if (range <= 20) {
+                lines.push("Distribution:");
+                for (let v = this.min; v <= this.max; v++) {
+                  const c = counts.get(v) || 0;
+                  const pct = ((c / N) * 100).toFixed(3);
+                  const delta = (((c - expected) / expected) * 100).toFixed(2);
+                  lines.push(
+                    `  ${v}: ${c.toLocaleString()} (${pct}%) ${delta}%`,
+                  );
+                }
+              } else {
+                lines.push(
+                  `Distribution: ${range} values, expected ~${expected.toFixed(0)} each`,
+                );
+              }
+
+              const streaks = analyzeStreaks(values);
+              lines.push("\nStreak lengths (observed vs expected):");
+              const pSame = 1 / range;
+              const windows = N - 1;
+              for (let len = 2; len <= 8; len++) {
+                const obs = streaks[len] || 0;
+                const expStreak =
+                  windows * Math.pow(pSame, len - 1) * (1 - pSame);
+                if (expStreak < 0.5 && obs === 0) continue;
+                lines.push(
+                  `  Len ${len}: ${obs.toLocaleString()} (expected ~${expStreak.toFixed(1)})`,
+                );
+              }
+
+              lines.push(
+                `\nGenerated: ${N.toLocaleString()} values in ${elapsed}s`,
+              );
+              lines.push(
+                "Source: crypto.getRandomValues() — your browser CSPRNG",
+              );
+
+              this.diagText = lines.join("\n");
+              this.showDiag = true;
+              this.diagRunning = false;
+              this.diagBtnLabel = "🔬 Verify Fairness (browser CSPRNG)";
+            }, 50);
+          },
+
+          // ── Coin toss ─────────────────────────────────────
+          showCoinFace(isHeads) {
+            const el = this.$refs.coinDisplay;
+            el.textContent = "";
+            el.classList.toggle("face-heads", isHeads);
+            el.classList.toggle("face-tails", !isHeads);
+          },
+
+          settleCoin(isHeads) {
+            const el = this.$refs.coinDisplay;
+            el.classList.remove("flip");
+            this.coinResultText = isHeads ? "Heads" : "Tails";
+            this.coinResultClass = `coin-result ${isHeads ? "heads" : "tails"}`;
+            this.coinStats = {
+              heads: this.coinStats.heads + (isHeads ? 1 : 0),
+              tails: this.coinStats.tails + (isHeads ? 0 : 1),
+            };
+            this.saveCoinStats();
+            this.coinFlipping = false;
+          },
+
+          tossCoin() {
+            if (this.coinFlipping) return;
+            this.coinResultText = "";
+            this.coinResultClass = "coin-result";
+
+            const isHeads = secureRandomBoolean();
+
+            const reduceMotion =
+              window.matchMedia &&
+              window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            if (reduceMotion) {
+              this.showCoinFace(isHeads);
+              this.settleCoin(isHeads);
+              return;
+            }
+
+            let flips = 3 + Math.floor(Math.random() * 3);
+            if ((flips % 2 === 0) !== isHeads) flips++;
+
+            this.coinFlipping = true;
+            let showingHeads = true;
+            this.showCoinFace(showingHeads);
+
+            const self = this;
+            let done = 0;
+            function doFlip() {
+              const el = self.$refs.coinDisplay;
+              el.classList.remove("flip");
+              void el.offsetWidth;
+              el.classList.add("flip");
+              setTimeout(() => {
+                showingHeads = !showingHeads;
+                self.showCoinFace(showingHeads);
+              }, FLIP_MS / 2);
+
+              done++;
+              if (done < flips) {
+                setTimeout(doFlip, FLIP_MS);
+              } else {
+                setTimeout(() => self.settleCoin(isHeads), FLIP_MS);
+              }
+            }
+            doFlip();
+          },
+
+          // ── Coin stats ────────────────────────────────────
+          saveCoinStats() {
+            savePrefs({ ...loadPrefs(), coinStats: this.coinStats });
+          },
+
+          resetCoinStats() {
+            this.coinStats = { heads: 0, tails: 0 };
+            this.saveCoinStats();
+            const el = this.$refs.coinDisplay;
+            el.textContent = "?";
+            el.classList.remove("face-heads", "face-tails");
+            this.coinResultText = "";
+            this.coinResultClass = "coin-result";
+          },
+        }));
       });
 
-      // ── Init ────────────────────────────────────────────────
-      function init() {
-        const prefs = loadPrefs();
-        if (typeof prefs.min === "number") minInput.value = prefs.min;
-        if (typeof prefs.max === "number") maxInput.value = prefs.max;
-        if (prefs.coinStats) {
-          coinStats = { ...prefs.coinStats };
-          updateCoinStats();
-        }
-        if (prefs.tab) switchTab(prefs.tab);
-      }
-      init();
-
+      // ── Service worker ─────────────────────────────────────
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("sw.js");
       }
