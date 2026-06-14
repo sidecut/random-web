@@ -102,9 +102,11 @@
 
       /* Panels */
       .tab-panel {
+        /* display controlled by Alpine x-show; :not(.active) is the no-JS fallback */
+      }
+      .tab-panel:not(.active) {
         display: none;
       }
-      /* .active on tab-panel is unused with Alpine x-show, kept for no-JS fallback */
       .tab-panel.active {
         display: block;
       }
