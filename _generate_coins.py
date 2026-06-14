@@ -223,9 +223,6 @@ def make_coin(design, text, filename):
     # Stars
     draw_stars(draw, R)
     
-    # Specular highlight on top
-    draw_specular(draw, R)
-    
     # Smooth the result slightly
     img = img.filter(ImageFilter.GaussianBlur(radius=0.5))
     
