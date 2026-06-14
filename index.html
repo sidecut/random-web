@@ -771,7 +771,14 @@
       coinResultText.className = "coin-result";
 
       const isHeads = secureRandomBoolean();
+      let showHeads = true;
+      const flipInterval = setInterval(() => {
+        showHeads = !showHeads;
+        coinDisplay.src = showHeads ? "images/heads.png" : "images/tails.png";
+      }, 80);
+
       setTimeout(() => {
+        clearInterval(flipInterval);
         coinDisplay.src = isHeads ? "images/heads.png" : "images/tails.png";
         coinResultText.textContent = isHeads ? "Heads" : "Tails";
         coinResultText.className = `coin-result ${isHeads ? "heads" : "tails"}`;
