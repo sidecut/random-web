@@ -763,13 +763,12 @@
 
             this.lastResult = display;
             this.hasResult = true;
+            this.showShuffle = true;
             this.resultRange = `${this.min} – ${this.max}  (${range.toLocaleString()} items)`;
             this.error = "";
             this.showPop = false;
-            this.showShuffle = false;
             this.$nextTick(() => {
               this.showPop = true;
-              this.showShuffle = true;
             });
           },
 
