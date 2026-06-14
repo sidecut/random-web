@@ -185,6 +185,9 @@
         min-height: 80px;
         justify-content: center;
       }
+      .numbers-result-area {
+        margin-top: 16px;
+      }
       .result-label {
         font-size: 0.8rem;
         text-transform: uppercase;
@@ -443,7 +446,10 @@
         }
       }
     </style>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"
+    ></script>
   </head>
   <body>
     <div class="app" x-data="app">
@@ -471,7 +477,11 @@
 
       <!-- Numbers panel -->
       <div class="card">
-        <div class="tab-panel" :class="{ active: activeTab === 'numbers' }" x-show="activeTab === 'numbers'">
+        <div
+          class="tab-panel"
+          :class="{ active: activeTab === 'numbers' }"
+          x-show="activeTab === 'numbers'"
+        >
           <div class="fields">
             <div class="field">
               <label for="min">Min</label>
@@ -511,7 +521,7 @@
             🔀 Shuffle Range
           </button>
 
-          <div class="result-area">
+          <div class="result-area numbers-result-area">
             <span class="result-label">Last result</span>
             <button
               class="copy-btn"
@@ -544,7 +554,11 @@
         </div>
 
         <!-- Coin panel -->
-        <div class="tab-panel" :class="{ active: activeTab === 'coin' }" x-show="activeTab === 'coin'">
+        <div
+          class="tab-panel"
+          :class="{ active: activeTab === 'coin' }"
+          x-show="activeTab === 'coin'"
+        >
           <button class="btn btn-primary" @click="tossCoin">Toss Coin</button>
 
           <div class="coin-container">
@@ -566,12 +580,17 @@
               <div class="stat-label">Tails</div>
             </div>
             <div class="stat">
-              <div class="stat-value" x-text="coinStats.heads + coinStats.tails"></div>
+              <div
+                class="stat-value"
+                x-text="coinStats.heads + coinStats.tails"
+              ></div>
               <div class="stat-label">Total</div>
             </div>
           </div>
 
-          <button class="reset-link" @click="resetCoinStats">Clear stats</button>
+          <button class="reset-link" @click="resetCoinStats">
+            Clear stats
+          </button>
         </div>
       </div>
     </div>
@@ -712,7 +731,8 @@
           validateBounds() {
             if (isNaN(this.min) || isNaN(this.max))
               return "Please enter numbers for both bounds.";
-            if (this.min > this.max) return "Min must be less than or equal to Max.";
+            if (this.min > this.max)
+              return "Min must be less than or equal to Max.";
             if (this.max - this.min > 1_000_000)
               return "Range too large. Max difference is 1,000,000.";
             return null;
@@ -829,17 +849,14 @@
                 for (let v = this.min; v <= this.max; v++) {
                   const c = counts.get(v) || 0;
                   const pct = ((c / N) * 100).toFixed(3);
-                  const delta = (
-                    ((c - expected) / expected) *
-                    100
-                  ).toFixed(2);
+                  const delta = (((c - expected) / expected) * 100).toFixed(2);
                   lines.push(
-                    `  ${v}: ${c.toLocaleString()} (${pct}%) ${delta}%`
+                    `  ${v}: ${c.toLocaleString()} (${pct}%) ${delta}%`,
                   );
                 }
               } else {
                 lines.push(
-                  `Distribution: ${range} values, expected ~${expected.toFixed(0)} each`
+                  `Distribution: ${range} values, expected ~${expected.toFixed(0)} each`,
                 );
               }
 
@@ -853,15 +870,15 @@
                   windows * Math.pow(pSame, len - 1) * (1 - pSame);
                 if (expStreak < 0.5 && obs === 0) continue;
                 lines.push(
-                  `  Len ${len}: ${obs.toLocaleString()} (expected ~${expStreak.toFixed(1)})`
+                  `  Len ${len}: ${obs.toLocaleString()} (expected ~${expStreak.toFixed(1)})`,
                 );
               }
 
               lines.push(
-                `\nGenerated: ${N.toLocaleString()} values in ${elapsed}s`
+                `\nGenerated: ${N.toLocaleString()} values in ${elapsed}s`,
               );
               lines.push(
-                "Source: crypto.getRandomValues() — your browser CSPRNG"
+                "Source: crypto.getRandomValues() — your browser CSPRNG",
               );
 
               this.diagText = lines.join("\n");
