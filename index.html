@@ -294,8 +294,8 @@
       background-image: var(--coin-tails);
       color: transparent;
     }
-    .coin.spinning {
-      animation: spin 0.8s ease-out;
+    .coin.flip {
+      animation: coin-flip 0.16s linear;
     }
     .coin-result {
       font-family: var(--font-mono);
@@ -308,12 +308,10 @@
     .coin-result.heads { color: var(--accent); }
     .coin-result.tails { color: var(--danger); }
 
-    @keyframes spin {
-      0%   { transform: rotateY(0) scale(1); }
-      25%  { transform: rotateY(180deg) scale(1.08); }
-      50%  { transform: rotateY(360deg) scale(0.95); }
-      75%  { transform: rotateY(540deg) scale(1.04); }
-      100% { transform: rotateY(720deg) scale(1); }
+    @keyframes coin-flip {
+      0%   { transform: translateY(0) scaleY(1); }
+      50%  { transform: translateY(-26px) scaleY(0.08); }
+      100% { transform: translateY(0) scaleY(1); }
     }
 
     /* Stats */
@@ -412,7 +410,7 @@
 
     @media (prefers-reduced-motion: reduce) {
       .result-value.pop,
-      .coin.spinning { animation: none; }
+      .coin.flip { animation: none; }
     }
   </style>
 </head>
@@ -780,26 +778,69 @@
       tossTotal.textContent = coinStats.heads + coinStats.tails;
     }
 
+    const FLIP_MS = 160;
+    let coinFlipping = false;
+
+    function showFace(isHeads) {
+      coinDisplay.textContent = "";
+      coinDisplay.classList.toggle("face-heads", isHeads);
+      coinDisplay.classList.toggle("face-tails", !isHeads);
+    }
+
+    function settleCoin(isHeads) {
+      coinDisplay.classList.remove("flip");
+      coinResultText.textContent = isHeads ? "Heads" : "Tails";
+      coinResultText.className = `coin-result ${isHeads ? "heads" : "tails"}`;
+      coinResultText.classList.add("pop");
+      coinStats[isHeads ? "heads" : "tails"]++;
+      updateCoinStats();
+      saveCoinStats();
+      coinFlipping = false;
+    }
+
     function tossCoin() {
-      coinDisplay.classList.remove("spinning");
-      void coinDisplay.offsetWidth;
-      coinDisplay.classList.add("spinning");
+      if (coinFlipping) return;
       coinResultText.textContent = "";
       coinResultText.className = "coin-result";
 
       const isHeads = secureRandomBoolean();
-      setTimeout(() => {
-        coinDisplay.textContent = "";
-        coinDisplay.classList.remove("face-heads", "face-tails");
-        coinDisplay.classList.add(isHeads ? "face-heads" : "face-tails");
-        coinResultText.textContent = isHeads ? "Heads" : "Tails";
-        coinResultText.className = `coin-result ${isHeads ? "heads" : "tails"}`;
-        coinResultText.classList.add("pop");
 
-        coinStats[isHeads ? "heads" : "tails"]++;
-        updateCoinStats();
-        saveCoinStats();
-      }, 400);
+      const reduceMotion = window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduceMotion) {
+        showFace(isHeads);
+        settleCoin(isHeads);
+        return;
+      }
+
+      // Always start as heads. Even flips land heads, odd flips land tails,
+      // so the flip count's parity must match the random outcome.
+      let flips = 8 + Math.floor(Math.random() * 8);
+      if ((flips % 2 === 0) !== isHeads) flips++;
+
+      coinFlipping = true;
+      let showingHeads = true;
+      showFace(showingHeads);
+
+      let done = 0;
+      function doFlip() {
+        coinDisplay.classList.remove("flip");
+        void coinDisplay.offsetWidth;
+        coinDisplay.classList.add("flip");
+        // Swap the visible face while the coin is edge-on (mid-flip).
+        setTimeout(() => {
+          showingHeads = !showingHeads;
+          showFace(showingHeads);
+        }, FLIP_MS / 2);
+
+        done++;
+        if (done < flips) {
+          setTimeout(doFlip, FLIP_MS);
+        } else {
+          setTimeout(() => settleCoin(isHeads), FLIP_MS);
+        }
+      }
+      doFlip();
     }
 
     function saveCoinStats() {
