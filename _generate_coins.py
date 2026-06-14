@@ -55,16 +55,18 @@ def draw_dots_ring(draw, r, count=60):
         )
 
 def draw_specular(draw, r):
-    """Draw specular highlight for 3D effect."""
-    highlight_r = r * 0.85
-    center_x = CX - r * 0.2
-    center_y = CY - r * 0.2
-    for i in range(int(r * 0.5), 0, -1):
-        t = i / (r * 0.5)
-        alpha = int(30 * t * t)
+    """Draw a subtle glossy sheen for 3D effect."""
+    center_x = CX - r * 0.15
+    center_y = CY - r * 0.15
+    max_i = int(r * 0.18)
+    for i in range(max_i, 0, -1):
+        t = i / max_i
+        # Very faint, fades to transparent quickly
+        alpha = int(12 * t * t * t)
+        base = 210
         draw.ellipse(
             [center_x - i, center_y - i, center_x + i, center_y + i],
-            fill=(220 + alpha, 210 + alpha, 195 + alpha)
+            fill=(base + alpha, base + alpha - 5, base + alpha - 15)
         )
 
 def draw_profile(draw, r):
