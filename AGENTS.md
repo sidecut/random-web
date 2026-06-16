@@ -73,9 +73,11 @@ All persistence lives under a **single key** `"random-web-prefs"` as JSON:
 }
 ```
 
-Each write merges into the existing object via spread: `{ ...loadPrefs(), min: x }`.
-Adding a new key is safe; removing or renaming an existing key requires a
-graceful fallback (bad JSON → empty object `{}`; missing keys → defaults).
+Each write goes through `updatePrefs(patch)` which merges the patch into the
+stored object. Reads go through `getPrefs()` which always returns a
+fully-typed, defaults-applied object — callers never need to guard types.
+Adding a new persistent key means updating `PREF_DEFAULTS` and `getPrefs()`'s
+return shape in one place.
 
 ## PWA / Service Worker
 
