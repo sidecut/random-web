@@ -86,8 +86,9 @@ The service worker is registered unconditionally at script load via
 
 ## Alpine.js Patterns
 
-- Three components: `app` (root), `numbersPanel` (numbers div), `coinPanel`
-  (coin div) — all registered via `Alpine.data()` in one `alpine:init` handler
+- Four components: `app` (root), `numbersPanel` (numbers div), `diagnostic`
+  (diag-section div inside numbers), `coinPanel` (coin div) — all registered
+  via `Alpine.data()` in one `alpine:init` handler
 - Tab visibility: **both** `x-show="activeTab === '...'"` (Alpine) **and**
   `:class="{ active: activeTab === '...' }"` (CSS) are applied to panels.
   Do not remove either — `x-show` controls DOM visibility; the CSS class is
@@ -95,6 +96,11 @@ The service worker is registered unconditionally at script load via
 - `activeTab` lives on `app`. Child panels read it in templates via Alpine
   scope chain. In JS methods (`this.activeTab`) it is **not** available inside
   `numbersPanel`/`coinPanel` — use `this.$parent.activeTab` if ever needed.
+- `diagnostic` is a **direct child** of `numbersPanel` in the DOM and depends
+  on that relationship. Its `runDiagnostic()` reaches into the parent via
+  `this.$parent.validateBounds()`, `this.$parent.min/max`, and
+  `this.$parent.error`. Moving the `.diag-section` element outside the
+  `numbersPanel` subtree will silently break all three of these.
 - DOM refs: `x-ref="coinDisplay"` on the coin element is scoped to `coinPanel`;
   accessed via `this.$refs.coinDisplay` inside coinPanel methods only.
 - Async tick: `this.$nextTick(() => { ... })` is used to reset and re-set
