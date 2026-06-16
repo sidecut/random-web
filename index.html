@@ -827,13 +827,15 @@
           diagText: "",
 
           runDiagnostic() {
-            const err = this.$parent.validateBounds();
+            const err = this.validateBounds();
             if (err) {
-              this.$parent.error = err;
+              this.error = err;
               return;
             }
 
             const N = 100_000;
+            const min = this.min;
+            const max = this.max;
             this.diagRunning = true;
             this.diagBtnLabel = `Running ${N.toLocaleString()} iterations...`;
             this.showDiag = false;
@@ -841,8 +843,6 @@
             setTimeout(() => {
               const start = performance.now();
               const values = new Array(N);
-              const min = this.$parent.min;
-              const max = this.$parent.max;
               for (let j = 0; j < N; j++)
                 values[j] = secureRandomInt(min, max);
               const elapsed = ((performance.now() - start) / 1000).toFixed(2);

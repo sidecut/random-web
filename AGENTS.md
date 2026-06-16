@@ -96,13 +96,14 @@ The service worker is registered unconditionally at script load via
   Do not remove either — `x-show` controls DOM visibility; the CSS class is
   used for potential styling hooks.
 - `activeTab` lives on `app`. Child panels read it in templates via Alpine
-  scope chain. In JS methods (`this.activeTab`) it is **not** available inside
-  `numbersPanel`/`coinPanel` — use `this.$parent.activeTab` if ever needed.
-- `diagnostic` is a **direct child** of `numbersPanel` in the DOM and depends
-  on that relationship. Its `runDiagnostic()` reaches into the parent via
-  `this.$parent.validateBounds()`, `this.$parent.min/max`, and
-  `this.$parent.error`. Moving the `.diag-section` element outside the
-  `numbersPanel` subtree will silently break all three of these.
+  scope chain. In JS methods, `this.activeTab` is **not** accessible inside
+  `numbersPanel`/`coinPanel` — Alpine's `$parent` is not a valid magic
+  property on `this` in JS methods; use `$dispatch` events instead.
+- `diagnostic` is a **direct child** of `numbersPanel` in the DOM. Its
+  `runDiagnostic()` reads `this.validateBounds()`, `this.min`, `this.max`,
+  and writes `this.error` — all resolved through Alpine's merged scope chain
+  to `numbersPanel`. Moving the `.diag-section` element outside the
+  `numbersPanel` subtree will silently break these reads.
 - DOM refs: `x-ref="coinDisplay"` on the coin element is scoped to `coinPanel`;
   accessed via `this.$refs.coinDisplay` inside coinPanel methods only.
 - Async tick: `this.$nextTick(() => { ... })` is used to reset and re-set
