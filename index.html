@@ -539,7 +539,7 @@
             <span class="result-range" x-text="resultRange"></span>
           </div>
 
-          <div class="diag-section">
+          <div class="diag-section" x-data="diagnostic">
             <button
               class="diag-btn"
               :disabled="diagRunning"
@@ -717,10 +717,6 @@
           resultRange: "",
           copyBtnLabel: "📋 Copy",
           copyBtnClass: "",
-          diagRunning: false,
-          diagBtnLabel: "🔬 Verify Fairness (browser CSPRNG)",
-          showDiag: false,
-          diagText: "",
 
           init() {
             const prefs = getPrefs();
@@ -822,11 +818,18 @@
             }
           },
 
-          // ── Diagnostic ────────────────────────────────────
+        }));
+
+        Alpine.data("diagnostic", () => ({
+          diagRunning: false,
+          diagBtnLabel: "🔬 Verify Fairness (browser CSPRNG)",
+          showDiag: false,
+          diagText: "",
+
           runDiagnostic() {
-            const err = this.validateBounds();
+            const err = this.$parent.validateBounds();
             if (err) {
-              this.error = err;
+              this.$parent.error = err;
               return;
             }
 
@@ -838,18 +841,20 @@
             setTimeout(() => {
               const start = performance.now();
               const values = new Array(N);
+              const min = this.$parent.min;
+              const max = this.$parent.max;
               for (let j = 0; j < N; j++)
-                values[j] = secureRandomInt(this.min, this.max);
+                values[j] = secureRandomInt(min, max);
               const elapsed = ((performance.now() - start) / 1000).toFixed(2);
 
-              const range = this.max - this.min + 1;
-              const counts = analyzeDistribution(values, this.min, this.max);
+              const range = max - min + 1;
+              const counts = analyzeDistribution(values, min, max);
               const expected = N / range;
               const lines = [];
 
               if (range <= 20) {
                 lines.push("Distribution:");
-                for (let v = this.min; v <= this.max; v++) {
+                for (let v = min; v <= max; v++) {
                   const c = counts.get(v) || 0;
                   const pct = ((c / N) * 100).toFixed(3);
                   const delta = (((c - expected) / expected) * 100).toFixed(2);
@@ -890,7 +895,6 @@
               this.diagBtnLabel = "🔬 Verify Fairness (browser CSPRNG)";
             }, 50);
           },
-
         }));
 
         Alpine.data("coinPanel", () => ({
