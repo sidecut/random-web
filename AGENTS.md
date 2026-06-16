@@ -9,8 +9,19 @@ step, no npm, no local dependencies.
 
 `index.html` is the entire application: CSS in a `<style>` block, markup in
 `<body>`, and JS in a `<script>` block at the bottom. Alpine.js (v3.14.9,
-pinned CDN URL) drives reactivity via a single component registered as
-`Alpine.data("app", ...)` inside an `alpine:init` listener.
+pinned CDN URL) drives reactivity via **three components** registered inside
+an `alpine:init` listener:
+
+| Component | `x-data` on | Owns |
+|---|---|---|
+| `app` | `.app` (root div) | `activeTab`, `switchTab()`, `persistTab()` |
+| `numbersPanel` | Numbers `.tab-panel` | Min/max state, generation, shuffle, diagnostic, copy |
+| `coinPanel` | Coin `.tab-panel` | Coin state, toss animation, stats, persistence |
+
+`numbersPanel` and `coinPanel` access `activeTab` from `app` via Alpine's
+scope chain (parent properties are readable in child template expressions).
+Neither child reads `activeTab` in JS methods — the scope dependency is
+template-only.
 
 The app has two tabs sharing one `.card` layout:
 
@@ -20,8 +31,9 @@ The app has two tabs sharing one `.card` layout:
   session persistence
 
 Data flow:
-1. `init()` reads `localStorage` → populates Alpine state
-2. `$watch` on `min`, `max`, `activeTab` auto-persists to `localStorage`
+1. Each component's `init()` calls `getPrefs()` → populates its own state
+2. `$watch` on `min`, `max` (in `numbersPanel`) and `activeTab` (in `app`)
+   auto-persist to `localStorage` via `updatePrefs(patch)`
 3. `crypto.getRandomValues()` feeds `secureRandomInt()` (rejection-sampled
    Uint32) and `secureRandomBoolean()` (bit-0 of Uint8)
 4. Results display with CSS animations triggered by Alpine state flags
@@ -74,12 +86,17 @@ The service worker is registered unconditionally at script load via
 
 ## Alpine.js Patterns
 
-- Component: `x-data="app"` on `.app` div; registered via `Alpine.data()`
+- Three components: `app` (root), `numbersPanel` (numbers div), `coinPanel`
+  (coin div) — all registered via `Alpine.data()` in one `alpine:init` handler
 - Tab visibility: **both** `x-show="activeTab === '...'"` (Alpine) **and**
   `:class="{ active: activeTab === '...' }"` (CSS) are applied to panels.
   Do not remove either — `x-show` controls DOM visibility; the CSS class is
   used for potential styling hooks.
-- DOM refs: `x-ref="coinDisplay"` accessed via `this.$refs.coinDisplay`
+- `activeTab` lives on `app`. Child panels read it in templates via Alpine
+  scope chain. In JS methods (`this.activeTab`) it is **not** available inside
+  `numbersPanel`/`coinPanel` — use `this.$parent.activeTab` if ever needed.
+- DOM refs: `x-ref="coinDisplay"` on the coin element is scoped to `coinPanel`;
+  accessed via `this.$refs.coinDisplay` inside coinPanel methods only.
 - Async tick: `this.$nextTick(() => { ... })` is used to reset and re-set
   animation flags (e.g., `showPop`) so the CSS `@keyframes` re-fires.
 

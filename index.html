@@ -479,6 +479,7 @@
       <div class="card">
         <div
           class="tab-panel"
+          x-data="numbersPanel"
           :class="{ active: activeTab === 'numbers' }"
           x-show="activeTab === 'numbers'"
         >
@@ -556,6 +557,7 @@
         <!-- Coin panel -->
         <div
           class="tab-panel"
+          x-data="coinPanel"
           :class="{ active: activeTab === 'coin' }"
           x-show="activeTab === 'coin'"
         >
@@ -687,10 +689,24 @@
 
       document.addEventListener("alpine:init", () => {
         Alpine.data("app", () => ({
-          // Tab
           activeTab: "numbers",
 
-          // Numbers
+          init() {
+            const prefs = getPrefs();
+            this.activeTab = prefs.tab;
+            this.$watch("activeTab", () => this.persistTab());
+          },
+
+          switchTab(tab) {
+            this.activeTab = tab;
+          },
+
+          persistTab() {
+            updatePrefs({ tab: this.activeTab });
+          },
+        }));
+
+        Alpine.data("numbersPanel", () => ({
           min: 1,
           max: 100,
           lastResult: "—",
@@ -699,43 +715,19 @@
           showPop: false,
           showShuffle: false,
           resultRange: "",
-
-          // Copy
           copyBtnLabel: "📋 Copy",
           copyBtnClass: "",
-
-          // Diagnostic
           diagRunning: false,
           diagBtnLabel: "🔬 Verify Fairness (browser CSPRNG)",
           showDiag: false,
           diagText: "",
 
-          // Coin
-          coinStats: { heads: 0, tails: 0 },
-          coinResultText: "",
-          coinResultClass: "coin-result",
-          coinFlipping: false,
-
-          // ── Lifecycle ─────────────────────────────────────
           init() {
             const prefs = getPrefs();
             this.min = prefs.min;
             this.max = prefs.max;
-            this.coinStats = { ...prefs.coinStats };
-            this.activeTab = prefs.tab;
-
             this.$watch("min", () => this.persistBounds());
             this.$watch("max", () => this.persistBounds());
-            this.$watch("activeTab", () => this.persistTab());
-          },
-
-          // ── Tab ───────────────────────────────────────────
-          switchTab(tab) {
-            this.activeTab = tab;
-          },
-
-          persistTab() {
-            updatePrefs({ tab: this.activeTab });
           },
 
           // ── Validation ────────────────────────────────────
@@ -897,6 +889,19 @@
               this.diagRunning = false;
               this.diagBtnLabel = "🔬 Verify Fairness (browser CSPRNG)";
             }, 50);
+          },
+
+        }));
+
+        Alpine.data("coinPanel", () => ({
+          coinStats: { heads: 0, tails: 0 },
+          coinResultText: "",
+          coinResultClass: "coin-result",
+          coinFlipping: false,
+
+          init() {
+            const prefs = getPrefs();
+            this.coinStats = { ...prefs.coinStats };
           },
 
           // ── Coin toss ─────────────────────────────────────
