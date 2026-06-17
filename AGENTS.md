@@ -47,7 +47,8 @@ Data flow:
 | `manifest.json` | PWA manifest (standalone display, SVG icon) |
 | `icon.svg` | App icon |
 | `_test_random.py` | Python CSPRNG statistical verification |
-| `_fix_coins.py` | Recovery tool for corrupted coin image CSS variables |
+| `coin-heads.png` | Heads face image (200×197, grayscale PNG) |
+| `coin-tails.png` | Tails face image (200×200, RGBA PNG) |
 
 ## Build / Test / Run
 
@@ -132,15 +133,13 @@ skips the flip loop entirely).
 
 ## Coin Face Images
 
-`--coin-heads` and `--coin-tails` in `:root` are **large base64-encoded PNG
-`url()` values** embedded directly in CSS. These are fragile:
-
-- Editors that line-wrap, re-indent, or truncate the `:root` block will corrupt
-  them silently.
-- `_fix_coins.py` is a recovery tool that restores them from a known-good git
-  ref (`/tmp/orig_index.html` must be placed manually from git).
-- Never edit those two lines manually. If they must change, replace the entire
-  base64 data in one atomic operation.
+`coin-heads.png` and `coin-tails.png` are standalone files served alongside
+`index.html`. The `.coin` div shows them via an `<img class="coin-face"
+x-ref="coinFace">` child; `showCoinFace(isHeads)` sets `img.src` and toggles
+`hidden`. A `<span x-ref="coinPlaceholder">?</span>` sibling shows the
+pre-toss state; `resetCoinStats()` restores it by hiding the img and
+un-hiding the span. Both PNGs are preloaded in `<head>` and listed in the
+`sw.js` ASSETS array.
 
 ## RNG Implementation Notes
 
@@ -177,8 +176,6 @@ in full; > 1000 shows first/last 20 with `...` in between.
 
 ## Tips for AI Agents
 
-- **Read the file before editing.** The coin image base64 lines are enormous
-  and will silently break if any tool wraps or truncates them.
 - **Alpine CDN version is pinned** at `3.14.9` in the `<script>` tag. Do not
   bump it without testing — Alpine minor versions can have breaking API changes.
 - **No PostCSS / autoprefixer.** Write CSS that already works in modern

@@ -77,15 +77,10 @@ browsers serve stale content.
 
 ## Critical gotchas
 
-- **Coin face images are giant base64 PNGs.** `--coin-heads` and `--coin-tails`
-  in the `:root` CSS block are enormous single-line `url(data:image/png;base64,…)`
-  values. Any tool that line-wraps, re-indents, or truncates the `:root` block will
-  silently corrupt them. Never hand-edit those two lines; if they must change,
-  replace the entire base64 data in one atomic operation. `_fix_coins.py` is a
-  recovery tool that restores them from a known-good copy placed at
-  `/tmp/orig_index.html` (manually, from git).
-- **Read `index.html` before editing it.** Same root cause: the file is ~168 KB
-  almost entirely because of those base64 strings. Target edits narrowly.
+- **Coin faces are `<img>` children of `.coin`.** `showCoinFace(isHeads)` sets
+  `$refs.coinFace.src` and toggles `hidden`; `resetCoinStats()` hides the img
+  and restores `$refs.coinPlaceholder`. Never use `el.textContent` on the `.coin`
+  div — it would wipe the `<img>` child.
 - **`diagnostic` must stay a direct child of `numbersPanel`** in the DOM. Its
   `runDiagnostic()` reads `this.validateBounds()`, `this.min`, `this.max`, and
   writes `this.error` via Alpine's merged scope chain. Moving `.diag-section`
