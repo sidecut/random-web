@@ -1,9 +1,11 @@
-const CACHE = "random-web-v1";
+const CACHE = "random-web-v2";
 const ASSETS = [
   "/",
   "/index.html",
   "/manifest.json",
-  "/icon.svg"
+  "/icon.svg",
+  "/coin-heads.png",
+  "/coin-tails.png"
 ];
 
 self.addEventListener("install", (e) => {
