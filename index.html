@@ -479,6 +479,7 @@
       <div class="card">
         <div
           class="tab-panel"
+          x-data="numbersPanel"
           :class="{ active: activeTab === 'numbers' }"
           x-show="activeTab === 'numbers'"
         >
@@ -538,7 +539,7 @@
             <span class="result-range" x-text="resultRange"></span>
           </div>
 
-          <div class="diag-section">
+          <div class="diag-section" x-data="diagnostic">
             <button
               class="diag-btn"
               :disabled="diagRunning"
@@ -556,6 +557,7 @@
         <!-- Coin panel -->
         <div
           class="tab-panel"
+          x-data="coinPanel"
           :class="{ active: activeTab === 'coin' }"
           x-show="activeTab === 'coin'"
         >
@@ -619,21 +621,34 @@
 
       // ── localStorage helpers ────────────────────────────────
       const LS_KEY = "random-web-prefs";
-      function loadPrefs() {
+      const PREF_DEFAULTS = {
+        min: 1,
+        max: 100,
+        tab: "numbers",
+        coinStats: { heads: 0, tails: 0 },
+      };
+      function getPrefs() {
+        let stored = {};
         try {
           const raw = localStorage.getItem(LS_KEY);
-          if (!raw) return {};
-          return JSON.parse(raw);
-        } catch (e) {
-          return {};
-        }
+          if (raw) stored = JSON.parse(raw);
+        } catch (_) {}
+        return {
+          min: typeof stored.min === "number" ? stored.min : PREF_DEFAULTS.min,
+          max: typeof stored.max === "number" ? stored.max : PREF_DEFAULTS.max,
+          tab: typeof stored.tab === "string" ? stored.tab : PREF_DEFAULTS.tab,
+          coinStats:
+            stored.coinStats && typeof stored.coinStats === "object"
+              ? { ...PREF_DEFAULTS.coinStats, ...stored.coinStats }
+              : { ...PREF_DEFAULTS.coinStats },
+        };
       }
-      function savePrefs(prefs) {
+      function updatePrefs(patch) {
         try {
-          localStorage.setItem(LS_KEY, JSON.stringify(prefs));
-        } catch (e) {
-          // quota exceeded or storage unavailable — silently ignore
-        }
+          const raw = localStorage.getItem(LS_KEY);
+          const current = raw ? JSON.parse(raw) : {};
+          localStorage.setItem(LS_KEY, JSON.stringify({ ...current, ...patch }));
+        } catch (_) {}
       }
 
       // ── Fisher-Yates shuffle ────────────────────────────────
@@ -674,10 +689,24 @@
 
       document.addEventListener("alpine:init", () => {
         Alpine.data("app", () => ({
-          // Tab
           activeTab: "numbers",
 
-          // Numbers
+          init() {
+            const prefs = getPrefs();
+            this.activeTab = prefs.tab;
+            this.$watch("activeTab", () => this.persistTab());
+          },
+
+          switchTab(tab) {
+            this.activeTab = tab;
+          },
+
+          persistTab() {
+            updatePrefs({ tab: this.activeTab });
+          },
+        }));
+
+        Alpine.data("numbersPanel", () => ({
           min: 1,
           max: 100,
           lastResult: "—",
@@ -686,45 +715,15 @@
           showPop: false,
           showShuffle: false,
           resultRange: "",
-
-          // Copy
           copyBtnLabel: "📋 Copy",
           copyBtnClass: "",
 
-          // Diagnostic
-          diagRunning: false,
-          diagBtnLabel: "🔬 Verify Fairness (browser CSPRNG)",
-          showDiag: false,
-          diagText: "",
-
-          // Coin
-          coinStats: { heads: 0, tails: 0 },
-          coinResultText: "",
-          coinResultClass: "coin-result",
-          coinFlipping: false,
-
-          // ── Lifecycle ─────────────────────────────────────
           init() {
-            const prefs = loadPrefs();
-            if (typeof prefs.min === "number") this.min = prefs.min;
-            if (typeof prefs.max === "number") this.max = prefs.max;
-            if (prefs.coinStats) {
-              this.coinStats = { ...prefs.coinStats };
-            }
-            if (prefs.tab) this.activeTab = prefs.tab;
-
+            const prefs = getPrefs();
+            this.min = prefs.min;
+            this.max = prefs.max;
             this.$watch("min", () => this.persistBounds());
             this.$watch("max", () => this.persistBounds());
-            this.$watch("activeTab", () => this.persistTab());
-          },
-
-          // ── Tab ───────────────────────────────────────────
-          switchTab(tab) {
-            this.activeTab = tab;
-          },
-
-          persistTab() {
-            savePrefs({ ...loadPrefs(), tab: this.activeTab });
           },
 
           // ── Validation ────────────────────────────────────
@@ -796,7 +795,7 @@
 
           // ── Persistence ───────────────────────────────────
           persistBounds() {
-            savePrefs({ ...loadPrefs(), min: this.min, max: this.max });
+            updatePrefs({ min: this.min, max: this.max });
           },
 
           // ── Copy ──────────────────────────────────────────
@@ -819,7 +818,14 @@
             }
           },
 
-          // ── Diagnostic ────────────────────────────────────
+        }));
+
+        Alpine.data("diagnostic", () => ({
+          diagRunning: false,
+          diagBtnLabel: "🔬 Verify Fairness (browser CSPRNG)",
+          showDiag: false,
+          diagText: "",
+
           runDiagnostic() {
             const err = this.validateBounds();
             if (err) {
@@ -828,6 +834,8 @@
             }
 
             const N = 100_000;
+            const min = this.min;
+            const max = this.max;
             this.diagRunning = true;
             this.diagBtnLabel = `Running ${N.toLocaleString()} iterations...`;
             this.showDiag = false;
@@ -836,17 +844,17 @@
               const start = performance.now();
               const values = new Array(N);
               for (let j = 0; j < N; j++)
-                values[j] = secureRandomInt(this.min, this.max);
+                values[j] = secureRandomInt(min, max);
               const elapsed = ((performance.now() - start) / 1000).toFixed(2);
 
-              const range = this.max - this.min + 1;
-              const counts = analyzeDistribution(values, this.min, this.max);
+              const range = max - min + 1;
+              const counts = analyzeDistribution(values, min, max);
               const expected = N / range;
               const lines = [];
 
               if (range <= 20) {
                 lines.push("Distribution:");
-                for (let v = this.min; v <= this.max; v++) {
+                for (let v = min; v <= max; v++) {
                   const c = counts.get(v) || 0;
                   const pct = ((c / N) * 100).toFixed(3);
                   const delta = (((c - expected) / expected) * 100).toFixed(2);
@@ -886,6 +894,18 @@
               this.diagRunning = false;
               this.diagBtnLabel = "🔬 Verify Fairness (browser CSPRNG)";
             }, 50);
+          },
+        }));
+
+        Alpine.data("coinPanel", () => ({
+          coinStats: { heads: 0, tails: 0 },
+          coinResultText: "",
+          coinResultClass: "coin-result",
+          coinFlipping: false,
+
+          init() {
+            const prefs = getPrefs();
+            this.coinStats = { ...prefs.coinStats };
           },
 
           // ── Coin toss ─────────────────────────────────────
@@ -956,7 +976,7 @@
 
           // ── Coin stats ────────────────────────────────────
           saveCoinStats() {
-            savePrefs({ ...loadPrefs(), coinStats: this.coinStats });
+            updatePrefs({ coinStats: this.coinStats });
           },
 
           resetCoinStats() {
