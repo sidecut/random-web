@@ -40,20 +40,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		GROOT /* / */ = {
-			isa = PBXGroup;
-			children = (
-				GSRC /* RandomWeb */,
-				GPROD /* Products */,
-			);
-			sourceTree = "<group>";
-		};
 		GPROD /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				FAPP /* RandomWeb.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		GROOT = {
+			isa = PBXGroup;
+			children = (
+				GSRC /* RandomWeb */,
+				GPROD /* Products */,
+			);
 			sourceTree = "<group>";
 		};
 		GSRC /* RandomWeb */ = {
@@ -276,6 +276,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = BR88LYC9JT;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -301,6 +302,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = BR88LYC9JT;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -322,15 +324,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		BCLSTPROJ /* Build configuration list for PBXProject "RandomWeb" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				BCDEBUG /* Debug */,
-				BCRELEASE /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		BCLST /* Build configuration list for PBXNativeTarget "RandomWeb" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -340,8 +333,16 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		BCLSTPROJ /* Build configuration list for PBXProject "RandomWeb" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BCDEBUG /* Debug */,
+				BCRELEASE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
-
 	};
 	rootObject = PROJ /* Project object */;
 }
