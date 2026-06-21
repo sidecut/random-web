@@ -40,7 +40,7 @@ struct CoinView: View {
                     )
                     .overlay(
                         Group {
-                            if coinResult == .none {
+                            if !isFlipping && coinResult == .none {
                                 Text("?")
                                     .font(.system(size: 36, weight: .bold))
                                     .foregroundColor(Color(hex: "#8b7300"))
