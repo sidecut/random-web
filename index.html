@@ -442,8 +442,8 @@
         }
       }
     </style>
-    <link rel="preload" href="coin-heads.png" as="image">
-    <link rel="preload" href="coin-tails.png" as="image">
+    <link rel="preload" href="coin-heads.png" as="image" />
+    <link rel="preload" href="coin-tails.png" as="image" />
     <script
       defer
       src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"
@@ -563,8 +563,17 @@
 
           <div class="coin-container">
             <div class="coin" x-ref="coinDisplay">
-              <img class="coin-face" x-ref="coinFace" src="" alt="" hidden>
-              <span x-ref="coinPlaceholder" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">?</span>
+              <img class="coin-face" x-ref="coinFace" src="" alt="" hidden />
+              <span
+                x-ref="coinPlaceholder"
+                style="
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                "
+                >?</span
+              >
             </div>
           </div>
           <div
@@ -648,7 +657,10 @@
         try {
           const raw = localStorage.getItem(LS_KEY);
           const current = raw ? JSON.parse(raw) : {};
-          localStorage.setItem(LS_KEY, JSON.stringify({ ...current, ...patch }));
+          localStorage.setItem(
+            LS_KEY,
+            JSON.stringify({ ...current, ...patch }),
+          );
         } catch (_) {}
       }
 
@@ -818,7 +830,6 @@
               }, 1500);
             }
           },
-
         }));
 
         Alpine.data("diagnostic", () => ({
@@ -844,8 +855,7 @@
             setTimeout(() => {
               const start = performance.now();
               const values = new Array(N);
-              for (let j = 0; j < N; j++)
-                values[j] = secureRandomInt(min, max);
+              for (let j = 0; j < N; j++) values[j] = secureRandomInt(min, max);
               const elapsed = ((performance.now() - start) / 1000).toFixed(2);
 
               const range = max - min + 1;
