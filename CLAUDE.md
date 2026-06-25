@@ -70,7 +70,7 @@ call `getPrefs()` in their `init()` and `$watch` relevant fields to auto-persist
 
 ### PWA / service worker
 
-`sw.js` is cache-first under key `"random-web-v1"` with `ASSETS = ["/",
+`sw.js` is cache-first under key `"random-web-v2"` with `ASSETS = ["/",
 "/index.html", "/manifest.json", "/icon.svg"]`. Registered unconditionally on
 load. **Bump the `CACHE` string in `sw.js` whenever a cached asset changes**, or
 browsers serve stale content.

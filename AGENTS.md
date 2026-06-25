@@ -82,7 +82,7 @@ return shape in one place.
 
 ## PWA / Service Worker
 
-`sw.js` uses cache-first strategy under key `"random-web-v1"`. If assets are
+`sw.js` uses cache-first strategy under key `"random-web-v2"`. If assets are
 changed and need cache-busting, **increment the cache string** in `sw.js`.
 The service worker is registered unconditionally at script load via
 `navigator.serviceWorker.register("sw.js")`.
