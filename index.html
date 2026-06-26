@@ -758,6 +758,15 @@
             return null;
           },
 
+          // ── Formatting ────────────────────────────────────
+          // Single source of truth for the "1 – 100" / "1 – 100 (50 items)"
+          // label. Pass count to append an item tally; omit for a plain range.
+          formatRange(count) {
+            const base = `${this.min} – ${this.max}`;
+            if (count == null) return base;
+            return `${base}  (${count.toLocaleString()} items)`;
+          },
+
           // ── Number generation ─────────────────────────────
           generateNumber() {
             const err = this.validateBounds();
@@ -768,7 +777,7 @@
               const result = secureRandomInt(this.min, this.max);
               this.lastResult = String(result);
               this.hasResult = true;
-              this.resultRange = `${this.min} – ${this.max}`;
+              this.resultRange = this.formatRange();
               this.error = "";
               // Trigger pop animation via flag reset
               this.showPop = false;
@@ -806,7 +815,7 @@
             this.lastResult = display;
             this.hasResult = true;
             this.showShuffle = true;
-            this.resultRange = `${this.min} – ${this.max}  (${range.toLocaleString()} items)`;
+            this.resultRange = this.formatRange(range);
             this.error = "";
             this.showPop = false;
             this.$nextTick(() => {
