@@ -450,10 +450,13 @@
         <p>Cryptographically secure randomness in your browser</p>
       </header>
 
-      <nav class="tabs">
+      <nav class="tabs" role="tablist" aria-label="Randomizer">
         <button
           class="tab-btn"
           :class="{ active: activeTab === 'numbers' }"
+          role="tab"
+          :aria-selected="activeTab === 'numbers'"
+          aria-controls="panel-numbers"
           @click="switchTab('numbers')"
         >
           🎲 Numbers
@@ -461,6 +464,9 @@
         <button
           class="tab-btn"
           :class="{ active: activeTab === 'coin' }"
+          role="tab"
+          :aria-selected="activeTab === 'coin'"
+          aria-controls="panel-coin"
           @click="switchTab('coin')"
         >
           🪙 Coin Toss
@@ -471,6 +477,8 @@
       <div class="card">
         <div
           class="tab-panel"
+          id="panel-numbers"
+          role="tabpanel"
           x-data="numbersPanel"
           x-show="activeTab === 'numbers'"
         >
@@ -514,17 +522,22 @@
           </button>
 
           <div class="result-area numbers-result-area">
-            <span class="result-label">Last result</span>
+            <span class="result-label" id="numbers-result-label">Last result</span>
             <button
               class="copy-btn"
               :class="copyBtnClass"
               :disabled="!hasResult"
+              aria-label="Copy result to clipboard"
               @click="copy"
               x-text="copyBtnLabel"
             ></button>
             <span
               class="result-value"
               :class="{ pop: showPop, shuffle: showShuffle }"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+              aria-labelledby="numbers-result-label"
               x-text="lastResult"
             ></span>
             <span class="result-range" x-text="resultRange"></span>
@@ -540,6 +553,9 @@
             <div
               class="diag-output"
               :class="{ visible: showDiag }"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
               x-text="diagText"
             ></div>
           </div>
@@ -548,6 +564,8 @@
         <!-- Coin panel -->
         <div
           class="tab-panel"
+          id="panel-coin"
+          role="tabpanel"
           x-data="coinPanel"
           x-show="activeTab === 'coin'"
         >
@@ -555,7 +573,14 @@
 
           <div class="coin-container">
             <div class="coin" x-ref="coinDisplay">
-              <img class="coin-face" x-ref="coinFace" src="" alt="" hidden />
+              <img
+                class="coin-face"
+                x-ref="coinFace"
+                src=""
+                alt=""
+                :alt="coinResultText || 'Coin face'"
+                hidden
+              />
               <span
                 x-ref="coinPlaceholder"
                 style="
@@ -571,6 +596,9 @@
           <div
             class="coin-result"
             :class="coinResultClass"
+            role="status"
+            aria-live="assertive"
+            aria-atomic="true"
             x-text="coinResultText"
           ></div>
 
