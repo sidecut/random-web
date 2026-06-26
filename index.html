@@ -796,6 +796,9 @@
 
             this.lastResult = display;
             this.hasResult = true;
+            // showShuffle is a sticky class — it stays true so the result
+            // element keeps the smaller shuffle font size. The "pop" animation
+            // is the one we re-fire each time, via showPop flag toggle.
             this.showShuffle = true;
             this.resultRange = this.formatRange(range);
             this.error = "";
