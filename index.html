@@ -929,6 +929,9 @@
           settleCoin(isHeads) {
             const el = this.$refs.coinDisplay;
             el.classList.remove("flip");
+            // Force the final displayed face to match the CSPRNG result,
+            // regardless of how many visual flips ran.
+            this.showCoinFace(isHeads);
             this.coinResultText = isHeads ? "Heads" : "Tails";
             this.coinResultClass = `coin-result ${isHeads ? "heads" : "tails"}`;
             this.coinStats = {
@@ -955,8 +958,9 @@
               return;
             }
 
-            let flips = 3 + Math.floor(Math.random() * 3);
-            if ((flips % 2 === 0) !== isHeads) flips++;
+            // Visual flip count is purely cosmetic — settleCoin() forces the
+            // final face to the CSPRNG result, so no parity correction needed.
+            const flips = 3 + Math.floor(Math.random() * 3);
 
             this.coinFlipping = true;
             let showingHeads = true;
