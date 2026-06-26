@@ -580,7 +580,6 @@
                 x-ref="coinFace"
                 src=""
                 alt=""
-                :alt="coinResultText || 'Coin face'"
                 hidden
               />
               <span
@@ -999,6 +998,7 @@
             this.$refs.coinPlaceholder.hidden = true;
             const img = this.$refs.coinFace;
             img.src = isHeads ? "coin-heads.png" : "coin-tails.png";
+            img.alt = isHeads ? "Heads" : "Tails";
             img.hidden = false;
           },
 
