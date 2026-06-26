@@ -683,27 +683,9 @@
       }
 
       // ── Fairness analysis helpers ───────────────────────────
-      function analyzeDistribution(values, min, max) {
-        const counts = new Map();
-        for (const v of values) {
-          counts.set(v, (counts.get(v) || 0) + 1);
-        }
-        return counts;
-      }
-
-      function analyzeStreaks(values) {
-        const streaks = {};
-        let i = 0;
-        while (i < values.length) {
-          let len = 1;
-          while (i + len < values.length && values[i + len] === values[i]) {
-            len++;
-          }
-          if (len >= 2) streaks[len] = (streaks[len] || 0) + 1;
-          i += len;
-        }
-        return streaks;
-      }
+      // (analyzeDistribution and analyzeStreaks were removed when the
+      // diagnostic loop was chunked; counts and streaks are now built
+      // incrementally alongside each value to avoid a second pass.)
 
       // ── Alpine component ────────────────────────────────────
       const FLIP_MS = 160;
@@ -867,64 +849,97 @@
             }
 
             const N = 100_000;
+            const CHUNK = 10_000;
             const min = this.min;
             const max = this.max;
             this.diagRunning = true;
             this.diagBtnLabel = `Running ${N.toLocaleString()} iterations...`;
             this.showDiag = false;
 
+            // Chunk the CSPRNG calls so the UI thread stays responsive
+            // between chunks. Each chunk is small enough that the worst-case
+            // jank on a slow device is well under one frame's budget.
             setTimeout(() => {
               const start = performance.now();
               const values = new Array(N);
-              for (let j = 0; j < N; j++) values[j] = secureRandomInt(min, max);
-              const elapsed = ((performance.now() - start) / 1000).toFixed(2);
+              const counts = new Map();
+              const streaks = {};
+              let prevValue = null;
+              let runLen = 0;
 
-              const range = max - min + 1;
-              const counts = analyzeDistribution(values, min, max);
-              const expected = N / range;
-              const lines = [];
+              const processChunk = (startIdx) => {
+                const end = Math.min(startIdx + CHUNK, N);
+                for (let j = startIdx; j < end; j++) {
+                  const v = secureRandomInt(min, max);
+                  values[j] = v;
+                  counts.set(v, (counts.get(v) || 0) + 1);
 
-              if (range <= 20) {
-                lines.push("Distribution:");
-                for (let v = min; v <= max; v++) {
-                  const c = counts.get(v) || 0;
-                  const pct = ((c / N) * 100).toFixed(3);
-                  const delta = (((c - expected) / expected) * 100).toFixed(2);
+                  if (prevValue === v) {
+                    runLen++;
+                  } else {
+                    if (runLen >= 2) streaks[runLen] = (streaks[runLen] || 0) + 1;
+                    prevValue = v;
+                    runLen = 1;
+                  }
+                }
+
+                if (end < N) {
+                  // Yield to the browser, then resume.
+                  setTimeout(() => processChunk(end), 0);
+                  return;
+                }
+
+                // Finalize: flush the trailing run and build the report.
+                if (runLen >= 2) streaks[runLen] = (streaks[runLen] || 0) + 1;
+                const elapsed = ((performance.now() - start) / 1000).toFixed(2);
+
+                const range = max - min + 1;
+                const expected = N / range;
+                const lines = [];
+
+                if (range <= 20) {
+                  lines.push("Distribution:");
+                  for (let v = min; v <= max; v++) {
+                    const c = counts.get(v) || 0;
+                    const pct = ((c / N) * 100).toFixed(3);
+                    const delta = (((c - expected) / expected) * 100).toFixed(2);
+                    lines.push(
+                      `  ${v}: ${c.toLocaleString()} (${pct}%) ${delta}%`,
+                    );
+                  }
+                } else {
                   lines.push(
-                    `  ${v}: ${c.toLocaleString()} (${pct}%) ${delta}%`,
+                    `Distribution: ${range} values, expected ~${expected.toFixed(0)} each`,
                   );
                 }
-              } else {
+
+                lines.push("\nStreak lengths (observed vs expected):");
+                const pSame = 1 / range;
+                const windows = N - 1;
+                for (let len = 2; len <= 8; len++) {
+                  const obs = streaks[len] || 0;
+                  const expStreak =
+                    windows * Math.pow(pSame, len - 1) * (1 - pSame);
+                  if (expStreak < 0.5 && obs === 0) continue;
+                  lines.push(
+                    `  Len ${len}: ${obs.toLocaleString()} (expected ~${expStreak.toFixed(1)})`,
+                  );
+                }
+
                 lines.push(
-                  `Distribution: ${range} values, expected ~${expected.toFixed(0)} each`,
+                  `\nGenerated: ${N.toLocaleString()} values in ${elapsed}s`,
                 );
-              }
-
-              const streaks = analyzeStreaks(values);
-              lines.push("\nStreak lengths (observed vs expected):");
-              const pSame = 1 / range;
-              const windows = N - 1;
-              for (let len = 2; len <= 8; len++) {
-                const obs = streaks[len] || 0;
-                const expStreak =
-                  windows * Math.pow(pSame, len - 1) * (1 - pSame);
-                if (expStreak < 0.5 && obs === 0) continue;
                 lines.push(
-                  `  Len ${len}: ${obs.toLocaleString()} (expected ~${expStreak.toFixed(1)})`,
+                  "Source: crypto.getRandomValues() — your browser CSPRNG",
                 );
-              }
 
-              lines.push(
-                `\nGenerated: ${N.toLocaleString()} values in ${elapsed}s`,
-              );
-              lines.push(
-                "Source: crypto.getRandomValues() — your browser CSPRNG",
-              );
+                this.diagText = lines.join("\n");
+                this.showDiag = true;
+                this.diagRunning = false;
+                this.diagBtnLabel = "🔬 Verify Fairness (browser CSPRNG)";
+              };
 
-              this.diagText = lines.join("\n");
-              this.showDiag = true;
-              this.diagRunning = false;
-              this.diagBtnLabel = "🔬 Verify Fairness (browser CSPRNG)";
+              processChunk(0);
             }, 50);
           },
         }));
