@@ -820,6 +820,10 @@
           },
 
           // ── Copy ──────────────────────────────────────────
+          // The button is :disabled="!hasResult" so this guard is a
+          // belt-and-suspenders fallback for keyboard / programmatic
+          // invocation. Silently no-op is intentional: the button
+          // already gives the user a visible affordance for state.
           async copy() {
             const text = this.lastResult;
             if (!text || text === "—") return;
