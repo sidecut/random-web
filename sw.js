@@ -1,9 +1,11 @@
-const CACHE = "random-web-v2";
+const CACHE = "random-web-v3";
 const ASSETS = [
   "/",
   "/index.html",
   "/manifest.json",
   "/icon.svg",
+  "/icon-192.png",
+  "/icon-512.png",
   "/coin-heads.png",
   "/coin-tails.png"
 ];
