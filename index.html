@@ -482,7 +482,7 @@
                 id="min"
                 x-model.number="min"
                 min="0"
-                max="1000000"
+                :max="MAX_RANGE_DIFF"
                 inputmode="numeric"
                 @change="persistBounds"
                 @keydown.enter.prevent="persistBounds(); generateNumber()"
@@ -495,7 +495,7 @@
                 id="max"
                 x-model.number="max"
                 min="1"
-                max="1000000"
+                :max="MAX_RANGE_DIFF"
                 inputmode="numeric"
                 @change="persistBounds"
                 @keydown.enter.prevent="persistBounds(); generateNumber()"
@@ -609,6 +609,12 @@
       // The UI caps inputs at 1,000,000, well below the limit.
       const UINT32_MAX = 0xffffffff;
       const MAX_RANGE = 2 ** 32;
+
+      // Largest allowed (max - min) for the user-facing inputs. Kept well under
+      // MAX_RANGE so rejection-sampling stays cheap and the shuffleRange array
+      // never exceeds available memory. Used by both the HTML max= bindings
+      // (rendered into the template via :max) and validateBounds().
+      const MAX_RANGE_DIFF = 1_000_000;
 
       function secureRandomInt(min, max) {
         if (min > max) throw new RangeError("min must be <= max");
@@ -735,8 +741,8 @@
               return "Please enter numbers for both bounds.";
             if (this.min > this.max)
               return "Min must be less than or equal to Max.";
-            if (this.max - this.min > 1_000_000)
-              return "Range too large. Max difference is 1,000,000.";
+            if (this.max - this.min > MAX_RANGE_DIFF)
+              return `Range too large. Max difference is ${MAX_RANGE_DIFF.toLocaleString()}.`;
             return null;
           },
 
