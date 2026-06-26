@@ -6,7 +6,9 @@
     <meta name="theme-color" content="#0f0f14" />
     <link rel="manifest" href="manifest.json" />
     <title>Random Web</title>
-    <link rel="icon" href="icon.svg" />
+    <link rel="icon" type="image/svg+xml" href="icon.svg" />
+    <link rel="alternate icon" type="image/png" sizes="192x192" href="icon-192.png" />
+    <link rel="apple-touch-icon" href="icon-512.png" />
     <style>
       :root {
         --bg: #0f0f14;
@@ -100,12 +102,7 @@
       }
 
       /* Panels */
-      .tab-panel {
-        /* visibility controlled by Alpine x-show */
-      }
-      .tab-panel.active {
-        display: block;
-      }
+      /* Visibility controlled by Alpine x-show on each .tab-panel. */
 
       /* Fields */
       .fields {
@@ -455,10 +452,13 @@
         <p>Cryptographically secure randomness in your browser</p>
       </header>
 
-      <nav class="tabs">
+      <nav class="tabs" role="tablist" aria-label="Randomizer">
         <button
           class="tab-btn"
           :class="{ active: activeTab === 'numbers' }"
+          role="tab"
+          :aria-selected="activeTab === 'numbers'"
+          aria-controls="panel-numbers"
           @click="switchTab('numbers')"
         >
           🎲 Numbers
@@ -466,6 +466,9 @@
         <button
           class="tab-btn"
           :class="{ active: activeTab === 'coin' }"
+          role="tab"
+          :aria-selected="activeTab === 'coin'"
+          aria-controls="panel-coin"
           @click="switchTab('coin')"
         >
           🪙 Coin Toss
@@ -476,8 +479,9 @@
       <div class="card">
         <div
           class="tab-panel"
+          id="panel-numbers"
+          role="tabpanel"
           x-data="numbersPanel"
-          :class="{ active: activeTab === 'numbers' }"
           x-show="activeTab === 'numbers'"
         >
           <div class="fields">
@@ -488,7 +492,7 @@
                 id="min"
                 x-model.number="min"
                 min="0"
-                max="1000000"
+                :max="MAX_RANGE_DIFF"
                 inputmode="numeric"
                 @change="persistBounds"
                 @keydown.enter.prevent="persistBounds(); generateNumber()"
@@ -501,7 +505,7 @@
                 id="max"
                 x-model.number="max"
                 min="1"
-                max="1000000"
+                :max="MAX_RANGE_DIFF"
                 inputmode="numeric"
                 @change="persistBounds"
                 @keydown.enter.prevent="persistBounds(); generateNumber()"
@@ -520,17 +524,22 @@
           </button>
 
           <div class="result-area numbers-result-area">
-            <span class="result-label">Last result</span>
+            <span class="result-label" id="numbers-result-label">Last result</span>
             <button
               class="copy-btn"
               :class="copyBtnClass"
               :disabled="!hasResult"
+              aria-label="Copy result to clipboard"
               @click="copy"
               x-text="copyBtnLabel"
             ></button>
             <span
               class="result-value"
               :class="{ pop: showPop, shuffle: showShuffle }"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+              aria-labelledby="numbers-result-label"
               x-text="lastResult"
             ></span>
             <span class="result-range" x-text="resultRange"></span>
@@ -546,6 +555,9 @@
             <div
               class="diag-output"
               :class="{ visible: showDiag }"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
               x-text="diagText"
             ></div>
           </div>
@@ -554,15 +566,22 @@
         <!-- Coin panel -->
         <div
           class="tab-panel"
+          id="panel-coin"
+          role="tabpanel"
           x-data="coinPanel"
-          :class="{ active: activeTab === 'coin' }"
           x-show="activeTab === 'coin'"
         >
           <button class="btn btn-primary" @click="tossCoin">Toss Coin</button>
 
           <div class="coin-container">
             <div class="coin" x-ref="coinDisplay">
-              <img class="coin-face" x-ref="coinFace" src="" alt="" hidden />
+              <img
+                class="coin-face"
+                x-ref="coinFace"
+                src=""
+                alt=""
+                hidden
+              />
               <span
                 x-ref="coinPlaceholder"
                 style="
@@ -578,6 +597,9 @@
           <div
             class="coin-result"
             :class="coinResultClass"
+            role="status"
+            aria-live="assertive"
+            aria-atomic="true"
             x-text="coinResultText"
           ></div>
 
@@ -608,11 +630,33 @@
 
     <script>
       // ── CSPRNG ──────────────────────────────────────────────
+      // secureRandomInt returns a uniform integer in [min, max] (inclusive).
+      // `range` is the count of distinct outputs (max - min + 1). The algorithm
+      // is correct for any range that fits in 32 bits, since rejection sampling
+      // is over a Uint32. JS Number is a 64-bit float, so callers must keep
+      // `range <= 2^32` — values larger than ~4.29B are silently inaccurate.
+      // The UI caps inputs at 1,000,000, well below the limit.
+      const UINT32_MAX = 0xffffffff;
+      const MAX_RANGE = 2 ** 32;
+
+      // Largest allowed (max - min) for the user-facing inputs. Kept well under
+      // MAX_RANGE so rejection-sampling stays cheap and the shuffleRange array
+      // never exceeds available memory. Used by both the HTML max= bindings
+      // (rendered into the template via :max) and validateBounds().
+      const MAX_RANGE_DIFF = 1_000_000;
+
       function secureRandomInt(min, max) {
         if (min > max) throw new RangeError("min must be <= max");
         const range = max - min + 1;
-        const maxUint32 = 0xffffffff;
-        const maxValid = maxUint32 - (maxUint32 % range);
+        if (range > MAX_RANGE) {
+          throw new RangeError(
+            `range ${range} exceeds 2^32; secureRandomInt cannot be unbiased`,
+          );
+        }
+        if (!Number.isSafeInteger(min) || !Number.isSafeInteger(max)) {
+          throw new RangeError("min and max must be safe integers");
+        }
+        const maxValid = UINT32_MAX - (UINT32_MAX % range);
         const buf = new Uint32Array(1);
         let val;
         do {
@@ -674,27 +718,9 @@
       }
 
       // ── Fairness analysis helpers ───────────────────────────
-      function analyzeDistribution(values, min, max) {
-        const counts = new Map();
-        for (const v of values) {
-          counts.set(v, (counts.get(v) || 0) + 1);
-        }
-        return counts;
-      }
-
-      function analyzeStreaks(values) {
-        const streaks = {};
-        let i = 0;
-        while (i < values.length) {
-          let len = 1;
-          while (i + len < values.length && values[i + len] === values[i]) {
-            len++;
-          }
-          if (len >= 2) streaks[len] = (streaks[len] || 0) + 1;
-          i += len;
-        }
-        return streaks;
-      }
+      // (analyzeDistribution and analyzeStreaks were removed when the
+      // diagnostic loop was chunked; counts and streaks are now built
+      // incrementally alongside each value to avoid a second pass.)
 
       // ── Alpine component ────────────────────────────────────
       const FLIP_MS = 160;
@@ -744,9 +770,18 @@
               return "Please enter numbers for both bounds.";
             if (this.min > this.max)
               return "Min must be less than or equal to Max.";
-            if (this.max - this.min > 1_000_000)
-              return "Range too large. Max difference is 1,000,000.";
+            if (this.max - this.min > MAX_RANGE_DIFF)
+              return `Range too large. Max difference is ${MAX_RANGE_DIFF.toLocaleString()}.`;
             return null;
+          },
+
+          // ── Formatting ────────────────────────────────────
+          // Single source of truth for the "1 – 100" / "1 – 100 (50 items)"
+          // label. Pass count to append an item tally; omit for a plain range.
+          formatRange(count) {
+            const base = `${this.min} – ${this.max}`;
+            if (count == null) return base;
+            return `${base}  (${count.toLocaleString()} items)`;
           },
 
           // ── Number generation ─────────────────────────────
@@ -759,7 +794,7 @@
               const result = secureRandomInt(this.min, this.max);
               this.lastResult = String(result);
               this.hasResult = true;
-              this.resultRange = `${this.min} – ${this.max}`;
+              this.resultRange = this.formatRange();
               this.error = "";
               // Trigger pop animation via flag reset
               this.showPop = false;
@@ -796,8 +831,11 @@
 
             this.lastResult = display;
             this.hasResult = true;
+            // showShuffle is a sticky class — it stays true so the result
+            // element keeps the smaller shuffle font size. The "pop" animation
+            // is the one we re-fire each time, via showPop flag toggle.
             this.showShuffle = true;
-            this.resultRange = `${this.min} – ${this.max}  (${range.toLocaleString()} items)`;
+            this.resultRange = this.formatRange(range);
             this.error = "";
             this.showPop = false;
             this.$nextTick(() => {
@@ -811,6 +849,10 @@
           },
 
           // ── Copy ──────────────────────────────────────────
+          // The button is :disabled="!hasResult" so this guard is a
+          // belt-and-suspenders fallback for keyboard / programmatic
+          // invocation. Silently no-op is intentional: the button
+          // already gives the user a visible affordance for state.
           async copy() {
             const text = this.lastResult;
             if (!text || text === "—") return;
@@ -845,64 +887,97 @@
             }
 
             const N = 100_000;
+            const CHUNK = 10_000;
             const min = this.min;
             const max = this.max;
             this.diagRunning = true;
             this.diagBtnLabel = `Running ${N.toLocaleString()} iterations...`;
             this.showDiag = false;
 
+            // Chunk the CSPRNG calls so the UI thread stays responsive
+            // between chunks. Each chunk is small enough that the worst-case
+            // jank on a slow device is well under one frame's budget.
             setTimeout(() => {
               const start = performance.now();
               const values = new Array(N);
-              for (let j = 0; j < N; j++) values[j] = secureRandomInt(min, max);
-              const elapsed = ((performance.now() - start) / 1000).toFixed(2);
+              const counts = new Map();
+              const streaks = {};
+              let prevValue = null;
+              let runLen = 0;
 
-              const range = max - min + 1;
-              const counts = analyzeDistribution(values, min, max);
-              const expected = N / range;
-              const lines = [];
+              const processChunk = (startIdx) => {
+                const end = Math.min(startIdx + CHUNK, N);
+                for (let j = startIdx; j < end; j++) {
+                  const v = secureRandomInt(min, max);
+                  values[j] = v;
+                  counts.set(v, (counts.get(v) || 0) + 1);
 
-              if (range <= 20) {
-                lines.push("Distribution:");
-                for (let v = min; v <= max; v++) {
-                  const c = counts.get(v) || 0;
-                  const pct = ((c / N) * 100).toFixed(3);
-                  const delta = (((c - expected) / expected) * 100).toFixed(2);
+                  if (prevValue === v) {
+                    runLen++;
+                  } else {
+                    if (runLen >= 2) streaks[runLen] = (streaks[runLen] || 0) + 1;
+                    prevValue = v;
+                    runLen = 1;
+                  }
+                }
+
+                if (end < N) {
+                  // Yield to the browser, then resume.
+                  setTimeout(() => processChunk(end), 0);
+                  return;
+                }
+
+                // Finalize: flush the trailing run and build the report.
+                if (runLen >= 2) streaks[runLen] = (streaks[runLen] || 0) + 1;
+                const elapsed = ((performance.now() - start) / 1000).toFixed(2);
+
+                const range = max - min + 1;
+                const expected = N / range;
+                const lines = [];
+
+                if (range <= 20) {
+                  lines.push("Distribution:");
+                  for (let v = min; v <= max; v++) {
+                    const c = counts.get(v) || 0;
+                    const pct = ((c / N) * 100).toFixed(3);
+                    const delta = (((c - expected) / expected) * 100).toFixed(2);
+                    lines.push(
+                      `  ${v}: ${c.toLocaleString()} (${pct}%) ${delta}%`,
+                    );
+                  }
+                } else {
                   lines.push(
-                    `  ${v}: ${c.toLocaleString()} (${pct}%) ${delta}%`,
+                    `Distribution: ${range} values, expected ~${expected.toFixed(0)} each`,
                   );
                 }
-              } else {
+
+                lines.push("\nStreak lengths (observed vs expected):");
+                const pSame = 1 / range;
+                const windows = N - 1;
+                for (let len = 2; len <= 8; len++) {
+                  const obs = streaks[len] || 0;
+                  const expStreak =
+                    windows * Math.pow(pSame, len - 1) * (1 - pSame);
+                  if (expStreak < 0.5 && obs === 0) continue;
+                  lines.push(
+                    `  Len ${len}: ${obs.toLocaleString()} (expected ~${expStreak.toFixed(1)})`,
+                  );
+                }
+
                 lines.push(
-                  `Distribution: ${range} values, expected ~${expected.toFixed(0)} each`,
+                  `\nGenerated: ${N.toLocaleString()} values in ${elapsed}s`,
                 );
-              }
-
-              const streaks = analyzeStreaks(values);
-              lines.push("\nStreak lengths (observed vs expected):");
-              const pSame = 1 / range;
-              const windows = N - 1;
-              for (let len = 2; len <= 8; len++) {
-                const obs = streaks[len] || 0;
-                const expStreak =
-                  windows * Math.pow(pSame, len - 1) * (1 - pSame);
-                if (expStreak < 0.5 && obs === 0) continue;
                 lines.push(
-                  `  Len ${len}: ${obs.toLocaleString()} (expected ~${expStreak.toFixed(1)})`,
+                  "Source: crypto.getRandomValues() — your browser CSPRNG",
                 );
-              }
 
-              lines.push(
-                `\nGenerated: ${N.toLocaleString()} values in ${elapsed}s`,
-              );
-              lines.push(
-                "Source: crypto.getRandomValues() — your browser CSPRNG",
-              );
+                this.diagText = lines.join("\n");
+                this.showDiag = true;
+                this.diagRunning = false;
+                this.diagBtnLabel = "🔬 Verify Fairness (browser CSPRNG)";
+              };
 
-              this.diagText = lines.join("\n");
-              this.showDiag = true;
-              this.diagRunning = false;
-              this.diagBtnLabel = "🔬 Verify Fairness (browser CSPRNG)";
+              processChunk(0);
             }, 50);
           },
         }));
@@ -923,18 +998,21 @@
             this.$refs.coinPlaceholder.hidden = true;
             const img = this.$refs.coinFace;
             img.src = isHeads ? "coin-heads.png" : "coin-tails.png";
+            img.alt = isHeads ? "Heads" : "Tails";
             img.hidden = false;
           },
 
           settleCoin(isHeads) {
             const el = this.$refs.coinDisplay;
             el.classList.remove("flip");
+            // Force the final displayed face to match the CSPRNG result,
+            // regardless of how many visual flips ran.
+            this.showCoinFace(isHeads);
             this.coinResultText = isHeads ? "Heads" : "Tails";
             this.coinResultClass = `coin-result ${isHeads ? "heads" : "tails"}`;
-            this.coinStats = {
-              heads: this.coinStats.heads + (isHeads ? 1 : 0),
-              tails: this.coinStats.tails + (isHeads ? 0 : 1),
-            };
+            const next = { ...this.coinStats };
+            next[isHeads ? "heads" : "tails"]++;
+            this.coinStats = next;
             this.saveCoinStats();
             this.coinFlipping = false;
           },
@@ -955,8 +1033,9 @@
               return;
             }
 
-            let flips = 3 + Math.floor(Math.random() * 3);
-            if ((flips % 2 === 0) !== isHeads) flips++;
+            // Visual flip count is purely cosmetic — settleCoin() forces the
+            // final face to the CSPRNG result, so no parity correction needed.
+            const flips = 3 + Math.floor(Math.random() * 3);
 
             this.coinFlipping = true;
             let showingHeads = true;

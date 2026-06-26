@@ -44,8 +44,10 @@ Data flow:
 |---|---|
 | `index.html` | Entire app: structure, styles, logic |
 | `sw.js` | Service worker — cache-first PWA offline support |
-| `manifest.json` | PWA manifest (standalone display, SVG icon) |
-| `icon.svg` | App icon |
+| `manifest.json` | PWA manifest (standalone display, SVG + 192/512 PNG icons) |
+| `icon.svg` | Vector app icon (used directly + rendered to PNGs) |
+| `icon-192.png` | App icon at 192×192 (PWA / manifest) |
+| `icon-512.png` | App icon at 512×512 (splash / apple-touch) |
 | `_test_random.py` | Python CSPRNG statistical verification |
 | `coin-heads.png` | Heads face image (200×197, grayscale PNG) |
 | `coin-tails.png` | Tails face image (200×200, RGBA PNG) |
@@ -82,9 +84,10 @@ return shape in one place.
 
 ## PWA / Service Worker
 
-`sw.js` uses cache-first strategy under key `"random-web-v1"`. If assets are
-changed and need cache-busting, **increment the cache string** in `sw.js`.
-The service worker is registered unconditionally at script load via
+`sw.js` uses **stale-while-revalidate** for the shell (`/`, `/index.html`) and
+**cache-first** for every other static asset, under cache key `"random-web-v3"`.
+If assets are changed and need cache-busting, **increment the cache string** in
+`sw.js`. The service worker is registered unconditionally at script load via
 `navigator.serviceWorker.register("sw.js")`.
 
 ## Alpine.js Patterns
