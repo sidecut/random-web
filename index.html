@@ -100,12 +100,7 @@
       }
 
       /* Panels */
-      .tab-panel {
-        /* visibility controlled by Alpine x-show */
-      }
-      .tab-panel.active {
-        display: block;
-      }
+      /* Visibility controlled by Alpine x-show on each .tab-panel. */
 
       /* Fields */
       .fields {
@@ -477,7 +472,6 @@
         <div
           class="tab-panel"
           x-data="numbersPanel"
-          :class="{ active: activeTab === 'numbers' }"
           x-show="activeTab === 'numbers'"
         >
           <div class="fields">
@@ -555,7 +549,6 @@
         <div
           class="tab-panel"
           x-data="coinPanel"
-          :class="{ active: activeTab === 'coin' }"
           x-show="activeTab === 'coin'"
         >
           <button class="btn btn-primary" @click="tossCoin">Toss Coin</button>
