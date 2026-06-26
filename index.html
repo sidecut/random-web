@@ -980,10 +980,9 @@
             this.showCoinFace(isHeads);
             this.coinResultText = isHeads ? "Heads" : "Tails";
             this.coinResultClass = `coin-result ${isHeads ? "heads" : "tails"}`;
-            this.coinStats = {
-              heads: this.coinStats.heads + (isHeads ? 1 : 0),
-              tails: this.coinStats.tails + (isHeads ? 0 : 1),
-            };
+            const next = { ...this.coinStats };
+            next[isHeads ? "heads" : "tails"]++;
+            this.coinStats = next;
             this.saveCoinStats();
             this.coinFlipping = false;
           },
