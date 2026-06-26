@@ -84,9 +84,10 @@ return shape in one place.
 
 ## PWA / Service Worker
 
-`sw.js` uses cache-first strategy under key `"random-web-v3"`. If assets are
-changed and need cache-busting, **increment the cache string** in `sw.js`.
-The service worker is registered unconditionally at script load via
+`sw.js` uses **stale-while-revalidate** for the shell (`/`, `/index.html`) and
+**cache-first** for every other static asset, under cache key `"random-web-v3"`.
+If assets are changed and need cache-busting, **increment the cache string** in
+`sw.js`. The service worker is registered unconditionally at script load via
 `navigator.serviceWorker.register("sw.js")`.
 
 ## Alpine.js Patterns

@@ -72,7 +72,9 @@ call `getPrefs()` in their `init()` and `$watch` relevant fields to auto-persist
 
 `sw.js` is cache-first under key `"random-web-v3"` with `ASSETS = ["/",
 "/index.html", "/manifest.json", "/icon.svg", "/icon-192.png", "/icon-512.png",
-"/coin-heads.png", "/coin-tails.png"]`. Registered unconditionally on
+"/coin-heads.png", "/coin-tails.png"]`. The shell (`/`, `/index.html`) uses
+stale-while-revalidate so updates land on the next reload without blocking
+first paint; everything else stays cache-first. Registered unconditionally on
 load. **Bump the `CACHE` string in `sw.js` whenever a cached asset changes**, or
 browsers serve stale content.
 
